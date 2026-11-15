@@ -4,7 +4,7 @@
 ## Notes-frFR: Une barre fine d'ordres aux bots, rôles sur les cadres de groupe, offres lfg bot en notifications - CoA Bots
 ## Version: 2.5-zhCN-UFI
 ## Notes-zhCN: 机器人指令、小号与专精管理、装备背包任务和天赋面板。
-## Author: CoA Bots team
+## Author: CoA Bots team  汉化：B站魔兽特工
 ## X-License: GPL-2.0
 ## X-Website: https://github.com/Zyth45/mod-playerbots
 ## SavedVariables: SquidBotsLiteDB
