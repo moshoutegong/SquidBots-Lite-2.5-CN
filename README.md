@@ -1,4 +1,4 @@
 SquidBots Lite 2.5 中文汉化版
 以官方下载2.5为基础，保留Manager.lua全部功能和角色独立存档。主界面及机器人管理面板均加入中文；语言设置可用 /sbl lang zh。攻击目标使用两行显示。优先使用游戏实际职责，修复了无职责数据时显示问号的bug。
 新功能入口：/sbl bot、/sbl spec、/sbl alts；机器人图标菜单也保留官方功能。部分银行、坐骑、天赋和账号功能需要对应服务端支持。
-安装：先备份游戏目录SquidBotsLite和WTF中的同名存档，将本文件夹放入Interface/AddOns，确认目录名为SquidBotsLite。避免同时启用两版。现有语言/账号设置保留，旧位置和显隐设置由2.5迁移到角色存档。
+安装：先备份游戏目录SquidBotsLite和WTF中的同名存档，将本文件夹放入Interface/AddOns，确认目录名为SquidBotsLite。避免同时启用两版。
