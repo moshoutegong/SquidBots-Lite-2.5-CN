@@ -80,6 +80,7 @@ local STRINGS = {
 		BALANCE_DONE = "Group: %s.", BALANCE_MISSING = "No bot in the group can play %s.",
 		BALANCE_WAIT = "Asking the bots for their specializations...", BALANCE_RAID = "In a raid, the raid command already sets the roles: pick specializations bot by bot.",
 		SPECS_NOT_BOT = "not a bot", SPEC_ASK = "Ask the bot", TIP_ROLE = "Switch to %s.", TIP_NO_ROLE = "No specialization of this role.",
+		MINIMAP_TIP = "Click to show or hide the controls. Drag to move the icon.",
 		HELP = "SquidBots Lite: /sbl (show/hide), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en, /sbl channel <name>, /sbl alts, /sbl spec, /sbl roles on|off, /sbl gm (GM only), /sbl reset. Key bindings: Esc > Key Bindings > SquidBots Lite.",
 		SCALE_SET = "SquidBots Lite bar size: %s (this character).", SCALE_BAD = "Bar size: a number from 0.5 to 2, for example /sbl scale 1.2",
 		LANG_SET = "SquidBots Lite language: English.", CHANNEL_SET = "SquidBots Lite asks in: %s",
@@ -159,6 +160,7 @@ local STRINGS = {
 		BALANCE_DONE = "Groupe : %s.", BALANCE_MISSING = "Aucun bot du groupe ne peut jouer %s.",
 		BALANCE_WAIT = "Demande de leurs spécialisations aux bots...", BALANCE_RAID = "En raid, la commande de raid répartit déjà les rôles : choisissez les spécialisations bot par bot.",
 		SPECS_NOT_BOT = "pas un bot", SPEC_ASK = "Demander au bot", TIP_ROLE = "Passer en %s.", TIP_NO_ROLE = "Aucune spécialisation de ce rôle.",
+		MINIMAP_TIP = "Cliquez pour afficher ou masquer les commandes. Faites glisser pour déplacer l’icône.",
 		HELP = "SquidBots Lite : /sbl (afficher/cacher), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en, /sbl channel <nom>, /sbl alts, /sbl spec, /sbl roles on|off, /sbl gm (MJ), /sbl reset. Raccourcis : Échap > Raccourcis > SquidBots Lite.",
 		SCALE_SET = "Taille de la barre SquidBots Lite : %s (ce personnage).", SCALE_BAD = "Taille de la barre : un nombre de 0,5 à 2, par exemple /sbl scale 1.2",
 		LANG_SET = "Langue de SquidBots Lite : français.", CHANNEL_SET = "SquidBots Lite demande dans : %s",
@@ -224,6 +226,7 @@ STRINGS.zh = {
  ["GEAR"] = "为全队换上最佳装备",
  ["GM_OFF"] = "GM 模式已关闭：和普通玩家一样，用 lfg bot 呼叫机器人。",
  ["GM_ON"] = "GM 模式已开启：通过 .playerbots coa 呼叫机器人。",
+ ["MINIMAP_TIP"] = "左键显示或隐藏机器人界面，拖动可移动图标。",
  ["HELP"] = "指令：/sbl 显示或隐藏；/sbl alts 小号；/sbl spec 专精；/sbl bot 机器人管理；/sbl scale 0.5～2 缩放；/sbl lang zh|en|fr 语言；/sbl roles on|off 自动职责；/sbl raidframes on|off 团队框架；/sbl reset 重置位置。快捷键见游戏按键设置。",
  ["INVITE"] = "邀请",
  ["LANG_SET"] = "SquidBots Lite 语言：简体中文。",
@@ -1315,7 +1318,75 @@ end
 
 local function SetBarShown(shown)
 	SquidBotsLiteCharDB.hidden = not shown
-	if shown then bar:Show() else bar:Hide() end
+	if shown then
+		bar:Show()
+		return
+	end
+	bar:Hide()
+	for _, name in ipairs({ "SquidBotsLiteAlts", "SquidBotsLiteSpecs", "SquidBotsLiteSheet" }) do
+		local panel = _G[name]
+		if panel then panel:Hide() end
+	end
+	local openMenu = UIDROPDOWNMENU_OPEN_MENU
+	if openMenu and (openMenu == menuFrame or openMenu == _G.SquidBotsLiteSheetMenu) then
+		CloseDropDownMenus()
+	end
+	for _, dialog in ipairs({ "SQUIDBOTSLITE_TEAM", "SQUIDBOTSLITE_ACCOUNT",
+		"SQUIDBOTSLITE_ABANDON", "SQUIDBOTSLITE_AUTOPICK" }) do
+		StaticPopup_Hide(dialog)
+	end
+end
+
+local function ToggleBar()
+	SetBarShown(not bar:IsShown())
+end
+
+local function BuildMinimapButton()
+	local button = CreateFrame("Button", "SquidBotsLiteMinimapButton", Minimap)
+	button:SetSize(32, 32)
+	button:SetFrameLevel(Minimap:GetFrameLevel() + 8)
+	button:RegisterForClicks("LeftButtonUp")
+	button:RegisterForDrag("LeftButton")
+
+	local icon = button:CreateTexture(nil, "BACKGROUND")
+	icon:SetTexture("Interface\\Icons\\Spell_Frost_SummonWaterElemental")
+	icon:SetSize(20, 20)
+	icon:SetPoint("CENTER")
+	icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+	local border = button:CreateTexture(nil, "OVERLAY")
+	border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+	border:SetSize(54, 54)
+	border:SetPoint("TOPLEFT")
+	button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+
+	local function PlaceButton(angle)
+		local radius = Minimap:GetWidth() / 2 + 8
+		button:ClearAllPoints()
+		button:SetPoint("CENTER", Minimap, "CENTER", math.cos(angle) * radius, math.sin(angle) * radius)
+	end
+
+	button:SetScript("OnClick", ToggleBar)
+	button:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+		GameTooltip:AddLine("SquidBots Lite")
+		GameTooltip:AddLine(L.MINIMAP_TIP, 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	button:SetScript("OnDragStart", function(self)
+		GameTooltip:Hide()
+		self:SetScript("OnUpdate", function()
+			local x, y = GetCursorPosition()
+			local cx, cy = Minimap:GetCenter()
+			local scale = Minimap:GetEffectiveScale()
+			local angle = math.atan2(y / scale - cy, x / scale - cx)
+			SquidBotsLiteCharDB.minimapAngle = angle
+			PlaceButton(angle)
+		end)
+	end)
+	button:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
+	PlaceButton(tonumber(SquidBotsLiteCharDB.minimapAngle) or math.rad(155))
 end
 
 local function BarButton(key, icon, label, tip, onClick)
@@ -1481,7 +1552,7 @@ local function BuildBar()
 	buttons.release:Hide()
 	RefreshTexts()
 	Highlight()
-	if SquidBotsLiteCharDB.hidden then
+	if SquidBotsLiteCharDB.hidden ~= false then
 		bar:Hide()
 	end
 end
@@ -2488,7 +2559,6 @@ local function OnWhisper(message, sender)
 			if offer.role == drop then table.remove(toasts, i) break end
 		end
 	end
-	if not bar:IsShown() then SetBarShown(true) end
 	RefreshToasts()
 end
 
@@ -2571,6 +2641,7 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 			EnsureBotsChannel()
 		end)
 		BuildBar()
+		BuildMinimapButton()
 		BuildOverlays()
 		BuildToasts()
 		BuildAlts()
@@ -2678,6 +2749,6 @@ SlashCmdList["SQUIDBOTSLITE"] = function(message)
 	elseif command == "help" or command == "?" then
 		Print(L.HELP)
 	else
-		SetBarShown(not bar:IsShown())
+		ToggleBar()
 	end
 end
