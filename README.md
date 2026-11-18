@@ -1,7 +1,7 @@
 # SquidBots Lite 2.9.4 中文汉化版
 
 > [!NOTE]
-> 本版以 SquidBots Lite 2.9.4 为基础，在飞升 FSHD 客户端上进行汉化整合。采集派遣、副本清理和主坦克等功能需要相应的服务端支持。Arden 玩家可下载此前的 [2.5 中文适配版](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.5.0)。
+> 本版以 SquidBots Lite 2.9.4 为基础，适用于飞升 Arden 客户端。采集派遣、副本清理和主坦克等功能需要相应的服务端支持。旧版仍可在 [2.5 中文适配版发布页](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.5.0) 下载。
 
 **汉化整合：B站魔兽特工**
 
@@ -18,7 +18,7 @@
 
 ## 📦 安装
 
-1. 从 [2.9.4 发布页](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.9.4) 下载 `SquidBotsLite-v2.9.4-FSHD-CN.zip`。
+1. 从 [2.9.4 发布页](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.9.4) 下载 `SquidBotsLite-v2.9.4-CN.zip`。
 2. 备份原插件和 `WTF` 中的同名存档，将 ZIP 内的 `SquidBotsLite` 文件夹放进客户端的 `Interface/AddOns`。
 3. 完整重启客户端。需要切换为简体中文时，输入 `/sbl lang zh`。
 
