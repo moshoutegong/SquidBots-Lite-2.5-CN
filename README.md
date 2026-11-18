@@ -1,7 +1,7 @@
 # SquidBots Lite 2.9.4 中文汉化版
 
 > [!NOTE]
-> 本版以 SquidBots Lite 2.9.4 为基础，适用于飞升 Arden 客户端。采集派遣、副本清理和主坦克等功能需要相应的服务端支持。旧版仍可在 [2.5 中文适配版发布页](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.5.0) 下载。
+> 本版以 SquidBots Lite 2.9.4 为基础，适用于飞升 Arden 客户端。采集派遣、副本清理和主坦克等功能需要相应的服务端支持。
 
 **汉化整合：B站魔兽特工**
 
