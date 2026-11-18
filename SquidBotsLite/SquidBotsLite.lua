@@ -7,16 +7,20 @@ SquidBotsLiteDB = SquidBotsLiteDB or {}
 local STRINGS = {
 	en = {
 		FOLLOW = "Follow", STAY = "Stay", ATTACK = "Target", PASSIVE = "Passive", ACTIVE = "Active", DUNGEON = "Dungeon", ALTS_BAR = "Alts", RECRUIT = "Bots",
-		TIP_FOLLOW = "Bots follow you.", TIP_STAY = "Bots stay where they are.", TIP_ATTACK = "Bots attack your target.",
-		TIP_ACTIVE = "Bots fight normally. Click to make them passive: no fights, and the tank stops pulling on its own.",
+		TIP_FOLLOW = "Bots follow you.", TIP_STAY = "Bots stay where they are.", TIP_ATTACK = "Target: your bots attack your target. Only the tank first: the \"Tank pulls my target\" key binding, or right click > Orders by role.",
+		TIP_ACTIVE = "Active: bots fight normally. Click to make them passive: no fights, and the tank stops pulling on its own.",
 		TIP_PASSIVE = "Bots are passive: no fights, no auto pull. Click, or give any order, to wake them.",
-		TOGGLE_PASSIVE = "Passive / Active",
+		TOGGLE_PASSIVE = "Passive / Active", BIND_TANKPULL = "Tank pulls my target", BIND_RECALL = "Recall all alts from missions",
+		KEY = "Shortcut: %s", NO_KEY = "Shortcut: none yet (Esc > Key Bindings > SquidBots Lite).",
 		PULL_ON = "Auto pull", PULL_OFF = "No pull", TOGGLE_PULL = "Tank auto pull on / off",
 		RAIDFRAMES_ON = "Role icons and bot menus on the raid-style frames: on.",
 		RAIDFRAMES_OFF = "Role icons and bot menus on the raid-style frames: off.",
-		TIP_PULL_ON = "The tank pulls on its own. Click so it waits: it only fights what you or the group attack.",
+		TIP_PULL_ON = "Auto pull: the tank engages nearby monsters on its own. Click so it waits: it only fights what you or the group attack.",
 		TIP_PULL_OFF = "The tank does not pull on its own: you choose the fights. Click to let it pull again.",
+		TIP_PULL_DC = "Dungeon clear is running: it chooses the pulls (pull mode in its panel). Auto pull comes back when the clear stops.",
 		TIP_DUNGEON = "Dungeon mode: bots stick to you, avoid ground effects, engage with you.",
+		MAINTANK_BAR = "Main Tank", TIP_MAINTANK = "You tank: the off-tank bar opens, Main tank on (a running Dungeon clear stops). Your bots keep their boss strategies. Click again: Leave Tank.",
+		TIP_MAINTANK_SOLO = "Join a group first.",
 		TIP_RECRUIT = "Ask for a tank, a healer or damage. Offers pop up above this bar.",
 		TIP_ALTS = "Your other characters: log them in as bots, summon them, open their sheet (gear, bags, quests, mounts).",
 		TIP_MOVE = "Shift-drag to move the bar, Ctrl + mouse wheel to resize it.",
@@ -26,32 +30,64 @@ local STRINGS = {
 		ASK_TANK = "Ask for a tank", ASK_HEAL = "Ask for a healer", ASK_DPS = "Ask for damage", ASK_ALL = "Ask for all three",
 		GM_ON = "GM mode on: bots are called with .playerbots coa.",
 		GM_OFF = "GM mode off: bots are called with lfg bot, like any player.",
-		GEAR = "Best gear for the group", REPAIR = "Repair the group",
-		RAID_10 = "Raid of 10 bots", RAID_25 = "Raid of 25 bots", REGEAR = "Regear level 60+ bots (GM)",
+		GEAR = "Best gear for the group",
+		GEAR_ASK_ALL = "Every bot of the group gets free gear for its level, replacing what it wears. Sure?",
+		GEAR_ASK_ONE = "%s gets free gear for its level, replacing what it wears. Players who earn their gear may not want this. Sure?",
+		REPAIR = "Repair the group",
+		RAID_10 = "Raid of 10 bots", RAID_15 = "Raid 15 (Manastorm)", RAID_25 = "Raid of 25 bots", REGEAR = "Regear level 60+ bots (GM)",
 		TRAIN = "Learn from my target (trainer)", M_TRAIN = "Learn from my target (trainer)",
 		QUESTS = "Take my quests (next to the quest giver)",
 		M_GATHER_ALL = "Gather everything (grey too)", M_GATHER_SKILLUP = "Gather only what gives skill",
 		GATHER = "Gathering (whole group)",
+		DC_DISABLED = "Dungeon clear is disabled on this realm.",
+		DC_LINE = "Dungeon clear", DC_PAUSED = "paused", DC_STOPPED = "stopped",
+		DC_NOT_IN_DUNGEON = "Dungeon clear starts inside a dungeon, with a tank bot in your group: it leads, you follow.", DC_ON = "On", DC_OFF = "Off", DC_PAUSE_B = "Pause", DC_SKIP_B = "Skip",
+		DC_P_DYN = "Dynamic", DC_P_LEEROY = "Leeroy", DC_P_ADV = "Advanced",
+		DC_BOSSES_T = "Bosses", DC_REFRESH = "Refresh", DC_GO = "Go", DC_NEXT = "Next boss: %s", DC_NONE = "none",
+		DC_NO_LIST = "No list yet: Refresh, inside a dungeon with a tank bot in your group.",
+		DC_PULL_T = "Pull mode", DC_STALLED = "blocked", DC_RESUME = "Resume",
+		TIP_DC_ON = "The tank leads the group through the dungeon, boss after boss, clearing the trash on the way. Inside a dungeon, with a tank bot in your group.",
+		TIP_DC_OFF = "Ends the clear: the bots come back to follow you.",
+		TIP_DC_PAUSE = "The tank stops where it is without ending the clear; click again to go on.",
+		TIP_DC_SKIP = "The tank gives up what it is on (a boss it cannot reach, a stuck step) and goes to the next boss. The skipped boss stays in the list: Go takes it back there.",
+		TIP_DC_P_DYN = "Pack by pack: walks into an easy one, pulls a big or tight one back to a camp. Best for most dungeons.",
+		TIP_DC_P_LEEROY = "Walks straight into every pack and fights there. Fastest, for dungeons you outgear.",
+		TIP_DC_P_ADV = "Pulls every pack back to a held camp before fighting it. Slowest and safest.",
+		TIP_DC_REFRESH = "Asks the tank for the list of bosses again.",
+		TIP_DC_GO = "The tank heads straight for this boss (and starts the clear if it was off).",
+		DC_ALIVE = "alive", DC_DEAD = "dead", DC_SKIPPED = "skipped", DC_MISSING = "missing", DC_RUNNING = "running",
+		TIP_DUNGEON_DC = "Dungeon clear: the tank leads the group through the dungeon. Opens its panel (bosses, Go, pull mode). The old dungeon mode is in the panel and in the bar's right-click menu.",
+		DC_MANUAL = "Dungeon mode (you lead)",
+		DC_AUTO = "Open in dungeons and raids",
+		TIP_DC_AUTO = "Opens this panel once when you enter a dungeon or a raid (after the fight, if there is one).",
+		DC_MT = "Main Tank", TIP_DC_MT = "You tank: this panel closes and the raid tank bar opens, Main tank on (a running clear stops, you lead). Leave Tank on the bar brings this panel back.",
+		DC_OFF_FOR_MT = "Dungeon Clear off: you lead as main tank.",
+		TIP_DC_MANUAL = "The old Dungeon button: bots stick to you, avoid ground effects, engage with you.",
 		NO_TRAINER = "Target a trainer first (class or profession): the bots learn all it teaches them.",
 		ALTS = "My alts", ALTS_REFRESH = "Refresh", ALTS_ADD = "Log in", ALTS_REMOVE = "Log out", ALTS_SUMMON = "Summon", ALTS_SHEET = "Sheet",
 		ALTS_LEVEL = "Level %d %s", ALTS_UNKNOWN = "Level ?", ALTS_NO_SPEC = "no spec",
 		TIP_SHEET = "Bot sheet: the gear, bags, quests and mounts of this alt.",
-		TEAMS = "Teams", T_LOGIN = "Log in (%d)", T_LOGOUT = "Log out", T_DELETE = "Delete", T_SAVE_GROUP = "Save my group as a team...",
+		MISSIONS = "Missions", TEAMS = "Teams", T_LOGIN = "Log in (%d)", T_LOGOUT = "Log out", T_DELETE = "Delete", T_SAVE_GROUP = "Save my group as a team...",
 		T_SAVE_ONLINE = "Save the logged-in alts as a team...", T_NAME = "Name of the team:", T_NONE = "No team yet.",
 		T_SAVED = "Team %s saved: %d characters.", T_STARTED = "Team %s: logging in %d characters, one a second.",
 		T_EMPTY = "Nobody to save: invite or log in your alts first.",
-		ACCOUNTS = "Accounts", A_SHOW = "Show my linked accounts", A_LINK = "Link an account...", A_KEY = "Set this account's key...",
+		DASHBOARD = "Dashboard", ACCOUNTS = "Accounts", A_SHOW = "Show my linked accounts", A_LINK = "Link an account...", A_KEY = "Set this account's key...",
 		A_LOGIN_ALL = "Log in all its characters", A_UNLINK = "Unlink", A_NAME = "Account name to link:",
 		A_KEYFOR = "Security key of %s (set on that account with Set this account's key):", A_MYKEY = "Key for this account (letters and digits):",
 		A_BAD = "Letters, digits and _ only.", A_NONE = "No linked account known yet: Show my linked accounts.",
 		A_HOWTO = "To play the characters of another account: log on that account once and set its key, then link it from here with that key.",
+		ALTS_IN = "logging in...", ALTS_OUT = "logging out...",
 		ALTS_WAIT = "Asking the server...", ALTS_EMPTY = "No other character on this account.",
 		ALTS_NO_REPLY = "No answer from the server: does it run the bot module?", ALTS_MORE = "%d more not shown.",
-		ALTS_HELP = "Log an alt in: it joins your group as your bot. Hover a name for more.",
+		ALTS_HELP = "Click a logged-in alt for its sheet. Hover an icon to see what it does.",
+		ALTS_COUNT = "%d / %d logged in", ALTS_MISSION = "out: %d min, %d items", TIP_ALTS_REFRESH = "Ask the server for your characters again.",
+		TIP_ALT_ADD = "It joins your group as your bot.", TIP_ALT_REMOVE = "Logs it out of the game.",
+		TIP_ALT_SUMMON = "Brings it to you: an alt logs in where it logged out.",
 		ALTS_LOOK = "Keeps its look (wardrobe, mounts) if the server has CoA.CollectionsForBots = 1.",
 		ALTS_TIP_CLICK = "Click: open its bot sheet.", ALTS_GOLD = "Gold: %s", ALTS_XP = "XP: %d%% (rested %d%%)",
-		INVITE = "Invite", ASKED = "Asked in %s: %s", NO_CHANNEL = "Join the Zone or Newcomers channel first (or /sbl channel <name>).",
-		JOINING_BOTS = "Joining the Bots channel - click again in a moment.",
+		INVITE = "Invite", ASKED = "Asked in %s: %s",
+		ASK_NONE = "No %s answered: only bots within 2 levels of you can. Ask again in a minute, or bring one of your alts (My alts).", NO_CHANNEL = "Join the %s channel first, or use /sbl channel to return to Bots.",
+		JOINING_BOTS = "Joining the Bots channel. Click again in a moment.",
 		NOT_IN_GROUP = "You are not in a group with bots.",
 		LOW_MANA = "Low mana", PULLING = "Pulling", REZ = "Rez",
 		M_FOLLOW = "Follow me", M_STAY = "Stay here", M_ATTACK = "Attack my target", M_SUMMON = "Come to me",
@@ -80,23 +116,26 @@ local STRINGS = {
 		BALANCE_DONE = "Group: %s.", BALANCE_MISSING = "No bot in the group can play %s.",
 		BALANCE_WAIT = "Asking the bots for their specializations...", BALANCE_RAID = "In a raid, the raid command already sets the roles: pick specializations bot by bot.",
 		SPECS_NOT_BOT = "not a bot", SPEC_ASK = "Ask the bot", TIP_ROLE = "Switch to %s.", TIP_NO_ROLE = "No specialization of this role.",
-		MINIMAP_TIP = "Click to show or hide the controls. Drag to move the icon.",
-		HELP = "SquidBots Lite: /sbl (show/hide), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en, /sbl channel <name>, /sbl alts, /sbl spec, /sbl roles on|off, /sbl gm (GM only), /sbl reset. Key bindings: Esc > Key Bindings > SquidBots Lite.",
+		HELP = "SquidBots Lite: /sbl (show/hide), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en|zh, /sbl channel <name>, /sbl alts, /sbl dashboard, /sbl spec, /sbl roles on|off, /sbl gm (GM only), /sbl reset. Key bindings: Esc > Key Bindings > SquidBots Lite.",
 		SCALE_SET = "SquidBots Lite bar size: %s (this character).", SCALE_BAD = "Bar size: a number from 0.5 to 2, for example /sbl scale 1.2",
 		LANG_SET = "SquidBots Lite language: English.", CHANNEL_SET = "SquidBots Lite asks in: %s",
 	},
 	fr = {
 		FOLLOW = "Suivre", STAY = "Rester", ATTACK = "Cible", PASSIVE = "Passif", ACTIVE = "Actif", DUNGEON = "Donjon", ALTS_BAR = "Alts", RECRUIT = "Bots",
-		TIP_FOLLOW = "Les bots vous suivent.", TIP_STAY = "Les bots restent sur place.", TIP_ATTACK = "Les bots attaquent votre cible.",
-		TIP_ACTIVE = "Les bots combattent normalement. Cliquez pour les rendre passifs : plus de combat, et le tank arrête de tirer seul.",
+		TIP_FOLLOW = "Les bots vous suivent.", TIP_STAY = "Les bots restent sur place.", TIP_ATTACK = "Cible : vos bots attaquent votre cible. Seul le tank d'abord : le raccourci « Le tank pull ma cible », ou clic droit > Ordres par rôle.",
+		TIP_ACTIVE = "Actif : les bots combattent normalement. Cliquez pour les rendre passifs : plus de combat, et le tank arrête de tirer seul.",
 		TIP_PASSIVE = "Les bots sont passifs : pas de combat, pas de pull auto. Cliquez, ou donnez n'importe quel ordre, pour les réveiller.",
-		TOGGLE_PASSIVE = "Passif / Actif",
+		TOGGLE_PASSIVE = "Passif / Actif", BIND_TANKPULL = "Le tank pull ma cible", BIND_RECALL = "Rappeler tous les alts en mission",
+		KEY = "Raccourci : %s", NO_KEY = "Raccourci : aucun pour l'instant (Échap > Raccourcis > SquidBots Lite).",
 		PULL_ON = "Pull auto", PULL_OFF = "Pas de pull", TOGGLE_PULL = "Pull auto du tank oui / non",
 		RAIDFRAMES_ON = "Icônes de rôle et menus des bots sur les cadres de style raid : activés.",
 		RAIDFRAMES_OFF = "Icônes de rôle et menus des bots sur les cadres de style raid : désactivés.",
-		TIP_PULL_ON = "Le tank tire tout seul. Cliquez pour qu'il attende : il ne se bat que contre ce que vous ou le groupe attaquez.",
+		TIP_PULL_ON = "Pull auto : le tank engage tout seul les monstres proches. Cliquez pour qu'il attende : il ne se bat que contre ce que vous ou le groupe attaquez.",
 		TIP_PULL_OFF = "Le tank ne tire pas tout seul : vous choisissez les combats. Cliquez pour qu'il tire de nouveau.",
+		TIP_PULL_DC = "Dungeon clear est en cours : c'est lui qui choisit les pulls (mode de pull dans son panneau). Le pull auto revient quand le clear s'arrête.",
 		TIP_DUNGEON = "Mode donjon : les bots restent avec vous, évitent les zones au sol, engagent avec vous.",
+		MAINTANK_BAR = "Main Tank", TIP_MAINTANK = "Vous tankez : la barre des off-tanks s'ouvre, Main tank actif (un Dungeon clear en cours s'arrête). Vos bots gardent leurs stratégies de boss. Nouveau clic : Quitter tank.",
+		TIP_MAINTANK_SOLO = "Rejoignez d'abord un groupe.",
 		TIP_RECRUIT = "Demandez un tank, un soigneur ou des DPS. Les offres s'affichent au-dessus de la barre.",
 		TIP_ALTS = "Vos autres personnages : connectez-les en bots, appelez-les, ouvrez leur fiche (équipement, sacs, quêtes, montures).",
 		TIP_MOVE = "Maj + glisser pour déplacer la barre, Ctrl + molette pour la redimensionner.",
@@ -106,32 +145,64 @@ local STRINGS = {
 		ASK_TANK = "Demander un tank", ASK_HEAL = "Demander un soigneur", ASK_DPS = "Demander des DPS", ASK_ALL = "Demander les trois",
 		GM_ON = "Mode GM activé : les bots sont appelés avec .playerbots coa.",
 		GM_OFF = "Mode GM désactivé : les bots sont appelés avec lfg bot, comme tout le monde.",
-		GEAR = "Meilleur équipement du groupe", REPAIR = "Réparer le groupe",
-		RAID_10 = "Raid de 10 bots", RAID_25 = "Raid de 25 bots", REGEAR = "Rééquiper les bots 60+ (MJ)",
+		GEAR = "Meilleur équipement du groupe",
+		GEAR_ASK_ALL = "Chaque bot du groupe reçoit un équipement gratuit de son niveau, à la place de ce qu'il porte. Sûr ?",
+		GEAR_ASK_ONE = "%s reçoit un équipement gratuit de son niveau, à la place de ce qu'il porte. Les joueurs qui gagnent leur équipement n'en voudront peut-être pas. Sûr ?",
+		REPAIR = "Réparer le groupe",
+		RAID_10 = "Raid de 10 bots", RAID_15 = "Raid 15 (Manastorm)", RAID_25 = "Raid de 25 bots", REGEAR = "Rééquiper les bots 60+ (MJ)",
 		TRAIN = "Apprendre de ma cible (entraîneur)", M_TRAIN = "Apprendre de ma cible (entraîneur)",
 		QUESTS = "Prendre mes quêtes (près du donneur)",
 		M_GATHER_ALL = "Tout récolter (gris compris)", M_GATHER_SKILLUP = "Récolter seulement ce qui fait monter",
 		GATHER = "Récolte (tout le groupe)",
+		DC_DISABLED = "Dungeon clear est désactivé sur ce royaume.",
+		DC_LINE = "Dungeon clear", DC_PAUSED = "en pause", DC_STOPPED = "arrêté",
+		DC_NOT_IN_DUNGEON = "Dungeon clear se lance dans un donjon, avec un bot tank dans le groupe : il mène, vous suivez.", DC_ON = "Démarrer", DC_OFF = "Arrêter", DC_PAUSE_B = "Pause", DC_SKIP_B = "Passer",
+		DC_P_DYN = "Dynamique", DC_P_LEEROY = "Leeroy", DC_P_ADV = "Avancé",
+		DC_BOSSES_T = "Boss", DC_REFRESH = "Actualiser", DC_GO = "Go", DC_NEXT = "Prochain boss : %s", DC_NONE = "aucun",
+		DC_NO_LIST = "Pas encore de liste : Actualiser, dans un donjon avec un bot tank dans le groupe.",
+		DC_PULL_T = "Mode de pull", DC_STALLED = "bloqué", DC_RESUME = "Reprendre",
+		TIP_DC_ON = "Le tank mène le groupe à travers le donjon, boss après boss, en nettoyant les packs en chemin. Dans un donjon, avec un bot tank dans le groupe.",
+		TIP_DC_OFF = "Arrête le clear : les bots reviennent vous suivre.",
+		TIP_DC_PAUSE = "Le tank s'arrête sur place sans finir le clear ; recliquez pour repartir.",
+		TIP_DC_SKIP = "Le tank abandonne ce qu'il fait (un boss qu'il n'atteint pas, une étape bloquée) et passe au boss suivant. Le boss passé reste dans la liste : Go l'y ramène.",
+		TIP_DC_P_DYN = "Pack par pack : fonce sur un pack facile, tire un pack gros ou serré vers un camp. Le meilleur choix pour la plupart des donjons.",
+		TIP_DC_P_LEEROY = "Fonce sur chaque pack et se bat sur place. Le plus rapide, pour les donjons où vous êtes bien équipés.",
+		TIP_DC_P_ADV = "Tire chaque pack vers un camp avant de le combattre. Le plus lent, le plus sûr.",
+		TIP_DC_REFRESH = "Redemande au tank la liste des boss.",
+		TIP_DC_GO = "Le tank va droit vers ce boss (et lance le clear s'il était arrêté).",
+		DC_ALIVE = "vivant", DC_DEAD = "mort", DC_SKIPPED = "passé", DC_MISSING = "introuvable", DC_RUNNING = "en cours",
+		TIP_DUNGEON_DC = "Dungeon clear : le tank mène le groupe à travers le donjon. Ouvre son panneau (boss, Go, mode de pull). L'ancien mode donjon est dans le panneau et dans le menu du clic droit sur la barre.",
+		DC_MANUAL = "Mode donjon (vous menez)",
+		DC_AUTO = "Ouvrir en donjon et en raid",
+		TIP_DC_AUTO = "Ouvre ce panneau une fois quand vous entrez dans un donjon ou un raid (après le combat s'il y en a un).",
+		DC_MT = "Main Tank", TIP_DC_MT = "Vous tankez : ce panneau se ferme et la barre des tanks de raid s'ouvre, Main tank actif (un clear en cours s'arrête, vous menez). Quitter tank, sur la barre, ramène ce panneau.",
+		DC_OFF_FOR_MT = "Dungeon Clear arrêté : vous menez en main tank.",
+		TIP_DC_MANUAL = "L'ancien bouton Donjon : les bots restent avec vous, évitent les zones au sol, engagent avec vous.",
 		NO_TRAINER = "Ciblez d'abord un entraîneur (de classe ou de métier) : les bots apprennent tout ce qu'il leur enseigne.",
 		ALTS = "Mes alts", ALTS_REFRESH = "Actualiser", ALTS_ADD = "Connecter", ALTS_REMOVE = "Déconnecter", ALTS_SUMMON = "Appeler", ALTS_SHEET = "Fiche",
 		ALTS_LEVEL = "Niveau %d %s", ALTS_UNKNOWN = "Niveau ?", ALTS_NO_SPEC = "sans spé",
 		TIP_SHEET = "Fiche du bot : l'équipement, les sacs, les quêtes et les montures de cet alt.",
-		TEAMS = "Équipes", T_LOGIN = "Connecter (%d)", T_LOGOUT = "Déconnecter", T_DELETE = "Supprimer", T_SAVE_GROUP = "Enregistrer mon groupe comme équipe...",
+		MISSIONS = "Missions", TEAMS = "Équipes", T_LOGIN = "Connecter (%d)", T_LOGOUT = "Déconnecter", T_DELETE = "Supprimer", T_SAVE_GROUP = "Enregistrer mon groupe comme équipe...",
 		T_SAVE_ONLINE = "Enregistrer les alts connectés comme équipe...", T_NAME = "Nom de l'équipe :", T_NONE = "Aucune équipe pour l'instant.",
 		T_SAVED = "Équipe %s enregistrée : %d personnages.", T_STARTED = "Équipe %s : connexion de %d personnages, un par seconde.",
 		T_EMPTY = "Personne à enregistrer : invitez ou connectez d'abord vos alts.",
-		ACCOUNTS = "Comptes", A_SHOW = "Voir mes comptes liés", A_LINK = "Lier un compte...", A_KEY = "Définir la clé de ce compte...",
+		DASHBOARD = "Dashboard", ACCOUNTS = "Comptes", A_SHOW = "Voir mes comptes liés", A_LINK = "Lier un compte...", A_KEY = "Définir la clé de ce compte...",
 		A_LOGIN_ALL = "Connecter tous ses personnages", A_UNLINK = "Délier", A_NAME = "Nom du compte à lier :",
 		A_KEYFOR = "Clé de sécurité de %s (définie sur ce compte avec Définir la clé de ce compte) :", A_MYKEY = "Clé de ce compte (lettres et chiffres) :",
 		A_BAD = "Lettres, chiffres et _ seulement.", A_NONE = "Aucun compte lié connu : Voir mes comptes liés.",
 		A_HOWTO = "Pour jouer les personnages d'un autre compte : connectez-vous une fois sur ce compte et définissez sa clé, puis liez-le d'ici avec cette clé.",
+		ALTS_IN = "connexion...", ALTS_OUT = "déconnexion...",
 		ALTS_WAIT = "Demande au serveur...", ALTS_EMPTY = "Aucun autre personnage sur ce compte.",
 		ALTS_NO_REPLY = "Pas de réponse du serveur : a-t-il le module des bots ?", ALTS_MORE = "%d de plus, non affichés.",
-		ALTS_HELP = "Connectez un alt : il rejoint votre groupe comme bot. Survolez un nom pour en savoir plus.",
+		ALTS_HELP = "Cliquez sur un alt connecté pour sa fiche. Survolez une icône pour son rôle.",
+		ALTS_COUNT = "%d / %d connectés", ALTS_MISSION = "parti : %d min, %d objets", TIP_ALTS_REFRESH = "Redemander vos personnages au serveur.",
+		TIP_ALT_ADD = "Il rejoint votre groupe comme bot.", TIP_ALT_REMOVE = "Le déconnecte du jeu.",
+		TIP_ALT_SUMMON = "L'amène à vous : un alt se connecte là où il s'était déconnecté.",
 		ALTS_LOOK = "Garde son apparence (garde-robe, montures) si le serveur a CoA.CollectionsForBots = 1.",
 		ALTS_TIP_CLICK = "Clic : ouvrir sa fiche.", ALTS_GOLD = "Or : %s", ALTS_XP = "XP : %d%% (reposé %d%%)",
-		INVITE = "Inviter", ASKED = "Demandé dans %s : %s", NO_CHANNEL = "Rejoignez le channel Zone ou Newcomers (ou /sbl channel <nom>).",
-		JOINING_BOTS = "Connexion au channel Bots - recliquez dans un instant.",
+		INVITE = "Inviter", ASKED = "Demandé dans %s : %s",
+		ASK_NONE = "Aucun %s n'a répondu : seuls les bots à 2 niveaux de vous peuvent le faire. Redemandez dans une minute, ou prenez un de vos alts (Mes alts).", NO_CHANNEL = "Rejoignez le canal %s ou utilisez /sbl channel pour revenir à Bots.",
+		JOINING_BOTS = "Connexion au canal Bots. Recliquez dans un instant.",
 		NOT_IN_GROUP = "Vous n'êtes pas en groupe avec des bots.",
 		LOW_MANA = "Mana bas", PULLING = "Pull", REZ = "Rez",
 		M_FOLLOW = "Me suivre", M_STAY = "Rester ici", M_ATTACK = "Attaquer ma cible", M_SUMMON = "Venir à moi",
@@ -160,197 +231,259 @@ local STRINGS = {
 		BALANCE_DONE = "Groupe : %s.", BALANCE_MISSING = "Aucun bot du groupe ne peut jouer %s.",
 		BALANCE_WAIT = "Demande de leurs spécialisations aux bots...", BALANCE_RAID = "En raid, la commande de raid répartit déjà les rôles : choisissez les spécialisations bot par bot.",
 		SPECS_NOT_BOT = "pas un bot", SPEC_ASK = "Demander au bot", TIP_ROLE = "Passer en %s.", TIP_NO_ROLE = "Aucune spécialisation de ce rôle.",
-		MINIMAP_TIP = "Cliquez pour afficher ou masquer les commandes. Faites glisser pour déplacer l’icône.",
-		HELP = "SquidBots Lite : /sbl (afficher/cacher), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en, /sbl channel <nom>, /sbl alts, /sbl spec, /sbl roles on|off, /sbl gm (MJ), /sbl reset. Raccourcis : Échap > Raccourcis > SquidBots Lite.",
+		HELP = "SquidBots Lite : /sbl (afficher/cacher), /sbl show, /sbl hide, /sbl scale 0.5-2, /sbl lang fr|en|zh, /sbl channel <nom>, /sbl alts, /sbl dashboard, /sbl spec, /sbl roles on|off, /sbl gm (MJ), /sbl reset. Raccourcis : Échap > Raccourcis > SquidBots Lite.",
 		SCALE_SET = "Taille de la barre SquidBots Lite : %s (ce personnage).", SCALE_BAD = "Taille de la barre : un nombre de 0,5 à 2, par exemple /sbl scale 1.2",
 		LANG_SET = "Langue de SquidBots Lite : français.", CHANNEL_SET = "SquidBots Lite demande dans : %s",
 	},
 }
-STRINGS.zh = {
- ["ACCOUNTS"] = "账号管理",
- ["ACTIVE"] = "主动",
- ["ALTS"] = "我的小号",
- ["ALTS_ADD"] = "登录",
- ["ALTS_BAR"] = "小号",
- ["ALTS_EMPTY"] = "本账号没有其他角色。",
- ["ALTS_FROM_LINKED"] = "来自关联账号：登录后将保留在此列表。",
- ["ALTS_GOLD"] = "金钱：%s",
- ["ALTS_HELP"] = "登录小号后，它会作为机器人加入队伍。鼠标移至名字可查看详情。",
- ["ALTS_LEVEL"] = "等级 %d %s",
- ["ALTS_LINKED"] = "关联账号",
- ["ALTS_LOOK"] = "服务端开启 CoA.CollectionsForBots = 1 时，会保留外观和坐骑设置。",
- ["ALTS_MORE"] = "另有 %d 个角色未显示。",
- ["ALTS_NO_REPLY"] = "服务器未回复，请确认已安装机器人服务端模块。",
- ["ALTS_NO_SPEC"] = "无专精",
- ["ALTS_REFRESH"] = "刷新",
- ["ALTS_REMOVE"] = "退出登录",
- ["ALTS_SHEET"] = "管理",
- ["ALTS_SUMMON"] = "召唤",
- ["ALTS_TIP_CLICK"] = "点击打开该机器人的管理面板。",
- ["ALTS_UNKNOWN"] = "等级未知",
- ["ALTS_WAIT"] = "正在查询服务器…",
- ["ALTS_XP"] = "经验：%d%%（休息加成 %d%%）",
- ["ASKED"] = "已在 %s 频道发出：%s",
- ["ASK_ALL"] = "三种都招募",
- ["ASK_DPS"] = "招募输出",
- ["ASK_HEAL"] = "招募治疗",
- ["ASK_TANK"] = "招募坦克",
- ["ATTACK"] = "攻击\n目标",
- ["A_BAD"] = "只能使用字母、数字和下划线。",
- ["A_HOWTO"] = "如需使用其他账号的角色，请先登录那个账号设置密钥，再在此输入相同密钥进行关联。",
- ["A_KEY"] = "设置本账号密钥…",
- ["A_KEYFOR"] = "%s 的安全密钥（需在该账号中通过“设置本账号密钥”设定）：",
- ["A_LINK"] = "关联账号…",
- ["A_LOGIN_ALL"] = "登录该账号的全部角色",
- ["A_MYKEY"] = "本账号密钥（字母和数字）：",
- ["A_NAME"] = "要关联的账号名称：",
- ["A_NONE"] = "尚无关联账号，请先点击“查看关联账号”。",
- ["A_SHOW"] = "查看关联账号",
- ["A_UNLINK"] = "取消关联",
- ["BALANCE"] = "自动分配职责",
- ["BALANCE_DONE"] = "队伍职责：%s。",
- ["BALANCE_MISSING"] = "队伍中没有机器人能担任%s。",
- ["BALANCE_RAID"] = "团队指令已分配职责，请逐个选择机器人的专精。",
- ["BALANCE_WAIT"] = "正在查询机器人的可用专精…",
- ["CHANNEL_SET"] = "SquidBots Lite 招募频道：%s",
- ["DUNGEON"] = "副本",
- ["FOLLOW"] = "跟随",
- ["FORMATION"] = "队形",
- ["F_ARROW"] = "箭头",
- ["F_CIRCLE"] = "环形",
- ["F_LINE"] = "横列",
- ["F_NEAR"] = "靠近（默认）",
- ["F_QUEUE"] = "单列纵队",
- ["F_SHIELD"] = "盾形环绕",
- ["GATHER"] = "全队采集",
- ["GEAR"] = "为全队换上最佳装备",
- ["GM_OFF"] = "GM 模式已关闭：和普通玩家一样，用 lfg bot 呼叫机器人。",
- ["GM_ON"] = "GM 模式已开启：通过 .playerbots coa 呼叫机器人。",
- ["MINIMAP_TIP"] = "左键显示或隐藏机器人界面，拖动可移动图标。",
- ["HELP"] = "指令：/sbl 显示或隐藏；/sbl alts 小号；/sbl spec 专精；/sbl bot 机器人管理；/sbl scale 0.5～2 缩放；/sbl lang zh|en|fr 语言；/sbl roles on|off 自动职责；/sbl raidframes on|off 团队框架；/sbl reset 重置位置。快捷键见游戏按键设置。",
- ["INVITE"] = "邀请",
- ["LANG_SET"] = "SquidBots Lite 语言：简体中文。",
- ["LOW_MANA"] = "法力不足",
- ["MY_ROLE"] = "我的职责：",
- ["M_ATTACK"] = "攻击我的目标",
- ["M_AUTOPULL_OFF"] = "关闭自动开怪",
- ["M_AUTOPULL_ON"] = "开启自动开怪",
- ["M_FOLLOW"] = "跟随我",
- ["M_GATHER_ALL"] = "采集全部资源（含灰色）",
- ["M_GATHER_SKILLUP"] = "只采集可提升熟练度的资源",
- ["M_GEAR"] = "最佳装备",
- ["M_HEAL_ALL"] = "治疗全队",
- ["M_HEAL_ME"] = "只治疗我",
- ["M_KICK"] = "移出队伍",
- ["M_MAKE_LEADER"] = "设为队长",
- ["M_MARK_OFF"] = "停止标记",
- ["M_MARK_ON"] = "用骷髅标记它的目标",
- ["M_SHEET"] = "机器人管理（装备、背包、任务）",
- ["M_STATS"] = "状态（背包、金币、经验）",
- ["M_STAY"] = "原地停留",
- ["M_SUMMON"] = "来到我身边",
- ["M_TAKE_LEAD"] = "把队长交给我",
- ["M_TRAIN"] = "向当前目标学习（训练师）",
- ["NOT_IN_GROUP"] = "你当前不在含有机器人的队伍中。",
- ["NO_CHANNEL"] = "请先加入 Zone 或 Newcomers 频道（也可用 /sbl channel <名称> 指定）。",
- ["JOINING_BOTS"] = "正在加入 Bots 频道，请稍后再点一次。",
- ["NO_TRAINER"] = "请先选中职业或专业训练师，机器人会学习其可教授的技能。",
- ["OUTDATED"] = "插件版本 %s 低于本服 CoA Bots %s。新版：https://github.com/Zyth45/squidbots-addon/releases/latest",
- ["PASSIVE"] = "被动",
- ["PROFILES"] = "预设方案",
- ["PULLING"] = "正在开怪",
- ["PULL_OFF"] = "停止开怪",
- ["PULL_ON"] = "自动开怪",
- ["P_DUNGEON"] = "副本模式",
- ["P_FARM"] = "打怪（狩猎、拾取、进食）",
- ["P_LEAVE_DUNGEON"] = "退出副本模式",
- ["P_STRICT"] = "严格跟随",
- ["QUESTS"] = "接取我的任务（需在任务NPC旁）",
- ["RAIDFRAMES_OFF"] = "团队样式框架的职责图标和机器人菜单已关闭。",
- ["RAIDFRAMES_ON"] = "团队样式框架的职责图标和机器人菜单已开启。",
- ["RAID_10"] = "招募10人机器人团队",
- ["RAID_25"] = "招募25人机器人团队",
- ["RECRUIT"] = "招募",
- ["REGEAR"] = "重配60级及以上机器人装备（GM）",
- ["RELEASE"] = "释放",
- ["REPAIR"] = "修理全队装备",
- ["REZ"] = "正在复活",
- ["ROLES_OFF"] = "自动识别职责已关闭。",
- ["ROLES_ON"] = "自动识别职责已开启：职责未知的机器人会被询问一次「co ?」，其回复会被隐藏。",
- ["ROLE_DPS"] = "输出",
- ["ROLE_HEAL"] = "治疗",
- ["ROLE_ORDERS"] = "按职责下达指令",
- ["ROLE_TANK"] = "坦克",
- ["R_DPS_ATTACK"] = "输出：攻击我的目标",
- ["R_HEAL_FOLLOW"] = "治疗：跟随我",
- ["R_HEAL_STAY"] = "治疗：原地停留",
- ["R_MELEE_FLEE"] = "近战：回到我身边，停止攻击",
- ["R_TANK_ATTACK"] = "坦克：攻击我的目标",
- ["SCALE_BAD"] = "缩放范围为 0.5～2，例如 /sbl scale 1.2",
- ["SCALE_SET"] = "本角色指令栏缩放：%s。",
- ["SPECS"] = "专精管理",
- ["SPECS_HELP"] = "点击职责切换至该职责上次使用的专精，也可点击“专精”自行选择。战斗方式与站位随专精变化。你的小号会保留所选专精及其天赋。",
- ["SPECS_NONE"] = "队伍中没有机器人。",
- ["SPECS_NOT_BOT"] = "不是机器人",
- ["SPECS_NO_REPLY"] = "未回复",
- ["SPECS_REFRESH"] = "刷新",
- ["SPECS_WAIT"] = "查询中…",
- ["SPEC_ALT_NOTE"] = "你的小号会保留此选择及你为该专精设置的天赋。",
- ["SPEC_ASK"] = "向机器人查询",
- ["SPEC_MENU"] = "专精",
- ["SPEC_NOW"] = "%s 已切换为 %s（%s）。",
- ["SPEC_NO_ROLE"] = "%s 没有适合“%s”的专精。",
- ["SPEC_OPEN"] = "全队专精管理…",
- ["SPEC_PICK"] = "专精",
- ["SPEC_UNKNOWN"] = "未知",
- ["STAY"] = "停留",
- ["SUMMON"] = "集合",
- ["SUPPORT"] = "辅助",
- ["TEAMS"] = "保存的队伍",
- ["TIP_ACTIVE"] = "机器人正常战斗。点击转为被动：不再战斗，坦克也会停止自行开怪。",
- ["TIP_ALTS"] = "管理自己的其他角色：登录为机器人、召唤，以及查看装备、背包、任务和坐骑。",
- ["TIP_ATTACK"] = "机器人攻击你的当前目标。",
- ["TIP_BALANCE"] = "将自己已选的职责算在内，分配一名坦克、一名治疗，其余为输出。已符合职责的机器人保留当前专精。",
- ["TIP_BOT_ICON"] = "点击打开指令和专精菜单。",
- ["TIP_DUNGEON"] = "副本模式：机器人紧跟你、规避地面效果、与你同步接战。",
- ["TIP_FOLLOW"] = "机器人跟随你。",
- ["TIP_MOVE"] = "按住 Shift 拖动；按住 Ctrl 滚动鼠标滚轮调整大小。",
- ["TIP_NO_ROLE"] = "没有适合此职责的专精。",
- ["TIP_PASSIVE"] = "机器人处于被动：不战斗、不自动开怪。点击此处，或下达任意指令，即可唤醒它们。",
- ["TIP_PROFILES"] = "右键：预设方案（打怪、严格跟随、副本）。",
- ["TIP_PULL_OFF"] = "坦克不会主动开怪，由你选择战斗目标。点击恢复自动开怪。",
- ["TIP_PULL_ON"] = "坦克会主动开怪。点击后等待你或队伍先发起战斗。",
- ["TIP_RECRUIT"] = "招募坦克、治疗或输出。报价会以弹窗形式显示在这条指令栏上方。",
- ["TIP_RELEASE"] = "当有机器人阵亡时出现：阵亡的机器人会释放灵魂并跑回尸体。",
- ["TIP_ROLE"] = "切换为%s。",
- ["TIP_SHEET"] = "查看该小号的装备、背包、任务和坐骑。",
- ["TIP_STAY"] = "机器人原地停留。",
- ["TIP_SUMMON"] = "机器人传送到你身边，某个机器人卡住时特别好用。",
- ["TOGGLE_PASSIVE"] = "被动 / 主动",
- ["TOGGLE_PULL"] = "切换坦克自动开怪",
- ["TRAIN"] = "向当前目标学习（训练师）",
- ["T_DELETE"] = "删除",
- ["T_EMPTY"] = "没有可保存的角色，请先邀请或登录小号。",
- ["T_LOGIN"] = "登录（%d）",
- ["T_LOGOUT"] = "退出登录",
- ["T_NAME"] = "队伍名称：",
- ["T_NONE"] = "尚未保存队伍。",
- ["T_SAVED"] = "队伍 %s 已保存：%d 个角色。",
- ["T_SAVE_GROUP"] = "将当前小队保存为队伍…",
- ["T_SAVE_ONLINE"] = "将已登录小号保存为队伍…",
- ["T_STARTED"] = "队伍 %s：正在登录 %d 个角色，每秒一个。",
-}
 
+STRINGS.zh = {
+	FOLLOW = "跟随",
+	STAY = "停留",
+	ATTACK = "攻击目标",
+	PASSIVE = "被动",
+	ACTIVE = "主动",
+	DUNGEON = "副本",
+	ALTS_BAR = "小号",
+	RECRUIT = "招募",
+	TIP_FOLLOW = "机器人跟随你。",
+	TIP_STAY = "机器人原地停留。",
+	TIP_ATTACK = "机器人攻击你的当前目标。要让坦克先拉怪，可使用「坦克拉我的目标」快捷键，或右键打开职责指令。",
+	TIP_ACTIVE = "机器人正常战斗。点击转为被动：不再战斗，坦克也会停止自行开怪。",
+	TIP_PASSIVE = "机器人处于被动：不战斗、不自动开怪。点击此处，或下达任意指令，即可唤醒它们。",
+	TOGGLE_PASSIVE = "被动 / 主动",
+	BIND_TANKPULL = "坦克拉我的目标",
+	BIND_RECALL = "召回所有派遣中的小号",
+	KEY = "快捷键：%s",
+	NO_KEY = "尚未设置快捷键（Esc → 按键设置 → SquidBots Lite）。",
+	PULL_ON = "自动开怪",
+	PULL_OFF = "停止开怪",
+	TOGGLE_PULL = "切换坦克自动开怪",
+	RAIDFRAMES_ON = "团队样式框架的职责图标和机器人菜单已开启。",
+	RAIDFRAMES_OFF = "团队样式框架的职责图标和机器人菜单已关闭。",
+	TIP_PULL_ON = "坦克会主动开怪。点击后等待你或队伍先发起战斗。",
+	TIP_PULL_OFF = "坦克不会主动开怪，由你选择战斗目标。点击恢复自动开怪。",
+	TIP_PULL_DC = "正在清理副本，由副本面板选择开怪方式。停止清理后恢复自动开怪设置。",
+	TIP_DUNGEON = "副本模式：机器人紧跟你、规避地面效果、与你同步接战。",
+	MAINTANK_BAR = "主坦克",
+	TIP_MAINTANK = "你担任坦克并打开副坦克指令栏，同时停止正在进行的副本清理。机器人保留首领战策略。再点一次退出主坦克。",
+	TIP_MAINTANK_SOLO = "请先加入队伍。",
+	TIP_RECRUIT = "招募坦克、治疗或输出。报价会以弹窗形式显示在这条指令栏上方。",
+	TIP_ALTS = "管理自己的其他角色：登录为机器人、召唤，以及查看装备、背包、任务和坐骑。",
+	TIP_MOVE = "按住 Shift 拖动；按住 Ctrl 滚动鼠标滚轮调整大小。",
+	TIP_PROFILES = "右键：预设方案（打怪、严格跟随、副本）。",
+	PROFILES = "预设方案",
+	P_FARM = "打怪（狩猎、拾取、进食）",
+	P_STRICT = "严格跟随",
+	P_DUNGEON = "副本模式",
+	P_LEAVE_DUNGEON = "退出副本模式",
+	ASK_TANK = "招募坦克",
+	ASK_HEAL = "招募治疗",
+	ASK_DPS = "招募输出",
+	ASK_ALL = "三种都招募",
+	GM_ON = "GM 模式已开启：通过 .playerbots coa 呼叫机器人。",
+	GM_OFF = "GM 模式已关闭：和普通玩家一样，用 lfg bot 呼叫机器人。",
+	GEAR = "为全队换上最佳装备",
+	GEAR_ASK_ALL = "为队伍中所有机器人发放符合等级的免费装备，并替换当前装备。确定继续吗？",
+	GEAR_ASK_ONE = "%s 将获得符合等级的免费装备，并替换当前装备。若想自行获取装备，可取消此操作。确定继续吗？",
+	REPAIR = "修理全队装备",
+	RAID_10 = "招募10人机器人团队",
+	RAID_15 = "15 人团队（法力风暴）",
+	RAID_25 = "招募25人机器人团队",
+	REGEAR = "重配60级及以上机器人装备（GM）",
+	TRAIN = "向当前目标学习（训练师）",
+	M_TRAIN = "向当前目标学习（训练师）",
+	QUESTS = "接取我的任务（需在任务NPC旁）",
+	M_GATHER_ALL = "采集全部资源（含灰色）",
+	M_GATHER_SKILLUP = "只采集可提升熟练度的资源",
+	GATHER = "全队采集",
+	DC_DISABLED = "此服务器已禁用副本清理。",
+	DC_LINE = "副本清理",
+	DC_PAUSED = "已暂停",
+	DC_STOPPED = "已停止",
+	DC_NOT_IN_DUNGEON = "进入副本并带上一名坦克机器人，即可让它带队清理。",
+	DC_ON = "开启",
+	DC_OFF = "停止",
+	DC_PAUSE_B = "暂停",
+	DC_SKIP_B = "跳过",
+	DC_P_DYN = "灵活",
+	DC_P_LEEROY = "直冲",
+	DC_P_ADV = "拉回",
+	DC_BOSSES_T = "首领",
+	DC_REFRESH = "刷新",
+	DC_GO = "前往",
+	DC_NEXT = "下一个首领：%s",
+	DC_NONE = "无",
+	DC_NO_LIST = "暂无首领列表。进入副本并带上一名坦克机器人后点击刷新。",
+	DC_PULL_T = "开怪方式",
+	DC_STALLED = "受阻",
+	DC_RESUME = "继续",
+	TIP_DC_ON = "在副本内让队伍中的坦克机器人带队清理沿途小怪和首领。",
+	TIP_DC_OFF = "停止清理，机器人回来跟随你。",
+	TIP_DC_PAUSE = "让坦克原地暂停。再次点击继续清理。",
+	TIP_DC_SKIP = "当前步骤受阻时可跳到下一个首领。被跳过的首领仍在列表中，点击「前往」可以返回。",
+	TIP_DC_P_DYN = "逐组处理。简单的怪直接开打，密集或困难的怪拉回指定位置，适合大多数副本。",
+	TIP_DC_P_LEEROY = "直接冲进每组怪中战斗。速度最快，适合装备足够好的队伍。",
+	TIP_DC_P_ADV = "每组怪都先拉回指定位置再开打。耗时最长，也最稳妥。",
+	TIP_DC_REFRESH = "让坦克重新上报首领列表。",
+	TIP_DC_GO = "让坦克直接前往这个首领，必要时启动清理。",
+	DC_ALIVE = "存活",
+	DC_DEAD = "已击败",
+	DC_SKIPPED = "已跳过",
+	DC_MISSING = "未找到",
+	DC_RUNNING = "清理中",
+	TIP_DUNGEON_DC = "打开副本清理面板，让坦克带队并选择首领与开怪方式。原来的手动带队仍可通过面板或右键菜单开启。",
+	DC_MANUAL = "副本模式（你带队）",
+	DC_AUTO = "进入副本和团队副本时打开",
+	TIP_DC_AUTO = "每次进入副本或团队副本时打开一次面板。若正在战斗，等战斗结束再打开。",
+	DC_MT = "主坦克",
+	TIP_DC_MT = "关闭副本清理面板并开启主坦克指令栏，由你带队和坦怪。退出主坦克可回到此面板。",
+	DC_OFF_FOR_MT = "副本清理已停止，由你担任主坦克带队。",
+	TIP_DC_MANUAL = "原副本按钮功能。机器人跟随你、规避地面伤害并随你接战。",
+	NO_TRAINER = "请先选中职业或专业训练师，机器人会学习其可教授的技能。",
+	ALTS = "我的小号",
+	ALTS_REFRESH = "刷新",
+	ALTS_ADD = "登录",
+	ALTS_REMOVE = "退出登录",
+	ALTS_SUMMON = "召唤",
+	ALTS_SHEET = "管理",
+	ALTS_LEVEL = "等级 %d %s",
+	ALTS_UNKNOWN = "等级未知",
+	ALTS_NO_SPEC = "无专精",
+	TIP_SHEET = "查看该小号的装备、背包、任务和坐骑。",
+	MISSIONS = "派遣",
+	TEAMS = "保存的队伍",
+	T_LOGIN = "登录（%d）",
+	T_LOGOUT = "退出登录",
+	T_DELETE = "删除",
+	T_SAVE_GROUP = "将当前小队保存为队伍…",
+	T_SAVE_ONLINE = "将已登录小号保存为队伍…",
+	T_NAME = "队伍名称：",
+	T_NONE = "尚未保存队伍。",
+	T_SAVED = "队伍 %s 已保存：%d 个角色。",
+	T_STARTED = "队伍 %s：正在登录 %d 个角色，每秒一个。",
+	T_EMPTY = "没有可保存的角色，请先邀请或登录小号。",
+	DASHBOARD = "总览",
+	ACCOUNTS = "账号管理",
+	A_SHOW = "查看关联账号",
+	A_LINK = "关联账号…",
+	A_KEY = "设置本账号密钥…",
+	A_LOGIN_ALL = "登录该账号的全部角色",
+	A_UNLINK = "取消关联",
+	A_NAME = "要关联的账号名称：",
+	A_KEYFOR = "%s 的安全密钥（需在该账号中通过“设置本账号密钥”设定）：",
+	A_MYKEY = "本账号密钥（字母和数字）：",
+	A_BAD = "只能使用字母、数字和下划线。",
+	A_NONE = "尚无关联账号，请先点击“查看关联账号”。",
+	A_HOWTO = "如需使用其他账号的角色，请先登录那个账号设置密钥，再在此输入相同密钥进行关联。",
+	ALTS_IN = "正在登录…",
+	ALTS_OUT = "正在退出…",
+	ALTS_WAIT = "正在查询服务器…",
+	ALTS_EMPTY = "本账号没有其他角色。",
+	ALTS_NO_REPLY = "服务器未回复，请确认已安装机器人服务端模块。",
+	ALTS_MORE = "另有 %d 个角色未显示。",
+	ALTS_HELP = "登录小号后，它会作为机器人加入队伍。鼠标移至名字可查看详情。",
+	ALTS_COUNT = "%d / %d 已登录",
+	ALTS_MISSION = "派遣中：%d 分钟，%d 件物品",
+	TIP_ALTS_REFRESH = "重新向服务器查询你的角色。",
+	TIP_ALT_ADD = "让小号以机器人身份加入队伍。",
+	TIP_ALT_REMOVE = "让该小号退出游戏。",
+	TIP_ALT_SUMMON = "传送到你身边。小号登录时默认出现在上次退出的位置。",
+	ALTS_LOOK = "服务端开启 CoA.CollectionsForBots = 1 时，会保留外观和坐骑设置。",
+	ALTS_TIP_CLICK = "点击打开该机器人的管理面板。",
+	ALTS_GOLD = "金钱：%s",
+	ALTS_XP = "经验：%d%%（休息加成 %d%%）",
+	INVITE = "邀请",
+	ASKED = "已在 %s 频道发出：%s",
+	ASK_NONE = "没有%s回应。只有与你等级相差不超过 2 级的机器人会回应。请稍后重试，或从「我的小号」带一个小号。",
+	NO_CHANNEL = "请先加入 %s 频道，或输入 /sbl channel 恢复使用 Bots。",
+	JOINING_BOTS = "正在加入 Bots 频道，请稍后再点一次。",
+	NOT_IN_GROUP = "你当前不在含有机器人的队伍中。",
+	LOW_MANA = "法力不足",
+	PULLING = "正在开怪",
+	REZ = "正在复活",
+	M_FOLLOW = "跟随我",
+	M_STAY = "原地停留",
+	M_ATTACK = "攻击我的目标",
+	M_SUMMON = "来到我身边",
+	M_AUTOPULL_ON = "开启自动开怪",
+	M_AUTOPULL_OFF = "关闭自动开怪",
+	M_KICK = "移出队伍",
+	M_TAKE_LEAD = "把队长交给我",
+	M_MAKE_LEADER = "设为队长",
+	M_MARK_ON = "用骷髅标记它的目标",
+	M_MARK_OFF = "停止标记",
+	ALTS_LINKED = "关联账号",
+	ALTS_FROM_LINKED = "来自关联账号：登录后将保留在此列表。",
+	M_SHEET = "机器人管理（装备、背包、任务）",
+	M_STATS = "状态（背包、金币、经验）",
+	M_GEAR = "最佳装备",
+	M_HEAL_ME = "只治疗我",
+	M_HEAL_ALL = "治疗全队",
+	SUMMON = "集合",
+	TIP_SUMMON = "机器人传送到你身边，某个机器人卡住时特别好用。",
+	RELEASE = "释放",
+	TIP_RELEASE = "当有机器人阵亡时出现：阵亡的机器人会释放灵魂并跑回尸体。",
+	ROLE_ORDERS = "按职责下达指令",
+	R_TANK_ATTACK = "坦克：攻击我的目标",
+	R_DPS_ATTACK = "输出：攻击我的目标",
+	R_HEAL_FOLLOW = "治疗：跟随我",
+	R_HEAL_STAY = "治疗：原地停留",
+	R_MELEE_FLEE = "近战：回到我身边，停止攻击",
+	FORMATION = "队形",
+	F_NEAR = "靠近（默认）",
+	F_LINE = "横列",
+	F_CIRCLE = "环形",
+	F_SHIELD = "盾形环绕",
+	F_ARROW = "箭头",
+	F_QUEUE = "单列纵队",
+	ROLES_ON = "自动识别职责已开启：职责未知的机器人会被询问一次「co ?」，其回复会被隐藏。",
+	OUTDATED = "插件版本 %s 低于本服 CoA Bots %s。新版：https://github.com/Zyth45/squidbots-addon/releases/latest",
+	ROLES_OFF = "自动识别职责已关闭。",
+	SPECS = "专精管理",
+	SPEC_MENU = "专精",
+	SPEC_OPEN = "全队专精管理…",
+	MY_ROLE = "我的职责：",
+	ROLE_TANK = "坦克",
+	ROLE_HEAL = "治疗",
+	ROLE_DPS = "输出",
+	SUPPORT = "辅助",
+	SPEC_PICK = "专精",
+	SPECS_REFRESH = "刷新",
+	BALANCE = "自动分配职责",
+	TIP_BALANCE = "将自己已选的职责算在内，分配一名坦克、一名治疗，其余为输出。已符合职责的机器人保留当前专精。",
+	SPECS_WAIT = "查询中…",
+	SPEC_UNKNOWN = "未知",
+	SPECS_NONE = "队伍中没有机器人。",
+	SPECS_NO_REPLY = "未回复",
+	SPECS_HELP = "点击职责切换至该职责上次使用的专精，也可点击“专精”自行选择。战斗方式与站位随专精变化。你的小号会保留所选专精及其天赋。",
+	TIP_BOT_ICON = "点击打开指令和专精菜单。",
+	SPEC_ALT_NOTE = "你的小号会保留此选择及你为该专精设置的天赋。",
+	SPEC_NOW = "%s 已切换为 %s（%s）。",
+	SPEC_NO_ROLE = "%s 没有适合“%s”的专精。",
+	BALANCE_DONE = "队伍职责：%s。",
+	BALANCE_MISSING = "队伍中没有机器人能担任%s。",
+	BALANCE_WAIT = "正在查询机器人的可用专精…",
+	BALANCE_RAID = "团队指令已分配职责，请逐个选择机器人的专精。",
+	SPECS_NOT_BOT = "不是机器人",
+	SPEC_ASK = "向机器人查询",
+	TIP_ROLE = "切换为%s。",
+	TIP_NO_ROLE = "没有适合此职责的专精。",
+	HELP = "指令：/sbl 显示或隐藏；/sbl alts 小号；/sbl spec 专精；/sbl bot 机器人管理；/sbl missions 派遣；/sbl dashboard 小号总览；/sbl dc 副本清理；/sbl questask on|off 任务询问；/sbl scale 0.5～2 缩放；/sbl lang zh|en|fr 语言；/sbl roles on|off 自动职责；/sbl raidframes on|off 团队框架；/sbl reset 重置位置。快捷键见游戏按键设置。",
+	SCALE_SET = "本角色指令栏缩放：%s。",
+	SCALE_BAD = "缩放范围为 0.5～2，例如 /sbl scale 1.2",
+	LANG_SET = "SquidBots Lite 语言：简体中文。",
+	CHANNEL_SET = "SquidBots Lite 招募频道：%s",
+	MINIMAP_TIP = "左键显示或隐藏机器人界面，拖动可移动图标。",
+}
 
 local L
-local CLASSES = {
-	"Barbarian", "Witch Doctor", "Felsworn", "Witch Hunter", "Stormbringer", "Knight of Xoroth", "Guardian",
-	"Templar", "Bloodmage", "Ranger", "Chronomancer", "Necromancer", "Pyromancer", "Cultist", "Starcaller",
-	"Sun Cleric", "Tinker", "Venomancer", "Reaper", "Primalist", "Runemaster",
-}
+
 -- Display names for /sbl lang zh (same wording as RecruitmentZh.lua's chat translation).
 -- Parsing keeps the English names above; only what is shown is translated.
 local CLASS_ZH = {
+	["Death Knight"] = "死亡骑士", Warrior = "战士", Paladin = "圣骑士", Hunter = "猎人", Rogue = "潜行者",
+	Priest = "牧师", Shaman = "萨满祭司", Mage = "法师", Warlock = "术士", Druid = "德鲁伊", Hero = "英雄",
 	["Barbarian"] = "野蛮人", ["Witch Doctor"] = "巫医", ["Felsworn"] = "恶魔猎手", ["Witch Hunter"] = "猎魔人",
 	["Stormbringer"] = "风暴使者", ["Knight of Xoroth"] = "克索诺斯骑士", ["Guardian"] = "守护者",
 	["Templar"] = "圣殿骑士", ["Bloodmage"] = "血法师", ["Ranger"] = "游侠", ["Chronomancer"] = "时光术师",
@@ -358,12 +491,17 @@ local CLASS_ZH = {
 	["Sun Cleric"] = "太阳祭司", ["Tinker"] = "工匠", ["Venomancer"] = "剧毒术士", ["Reaper"] = "死神",
 	["Primalist"] = "仪祭师", ["Runemaster"] = "符文大师", ["Son of Arugal"] = "阿鲁加尔之子",
 }
-local function ClassDisplayName(class)
+function SquidBotsLite_ClassDisplayName(class)
 	if SquidBotsLiteDB and SquidBotsLiteDB.lang == "zh" and class then
 		return CLASS_ZH[class] or class
 	end
 	return class
 end
+local CLASSES = {
+	"Barbarian", "Witch Doctor", "Felsworn", "Witch Hunter", "Stormbringer", "Knight of Xoroth", "Guardian",
+	"Templar", "Bloodmage", "Ranger", "Chronomancer", "Necromancer", "Pyromancer", "Cultist", "Starcaller",
+	"Sun Cleric", "Tinker", "Venomancer", "Reaper", "Primalist", "Runemaster",
+}
 local ROLE_ICON = "Interface\\LFGFrame\\UI-LFG-ICON-ROLES"
 -- Ascension's texture is 256 x 256 with 66-pixel icons (leader, heal / tank, dps / a black disc below the tank),
 -- not Blizzard's 64 x 64 one with 19-pixel icons.
@@ -372,17 +510,16 @@ local ROLE_COORDS = {
 	heal = { 68 / 256, 132 / 256, 1 / 256, 66 / 256 },
 	dps = { 68 / 256, 132 / 256, 68 / 256, 133 / 256 },
 }
--- Bots only answer in the Bots channel; it goes first so a prefix match never
--- lands on e.g. "NewcomersCN" while Bots is joined.
 local BOTS_CHANNEL = "Bots"
-local CHANNELS = { BOTS_CHANNEL, "Zone", "Newcomers", "World" }
 local OFFER_SECONDS = 120
+-- An ask with no offer for a role after this many seconds gets a hint in the chat.
+local ASK_WAIT = 12
 -- "Ask for all three" brings 7 offers by default (2 tanks, 2 healers, 3 damage: CoaLfg*Offers on the server).
 local MAX_TOASTS = 8
 -- Captions in a smaller font than the game's small text, and buttons spaced by the widest caption of the
 -- current language (measured in game): English "Dungeon" needs more room than French "Donjon".
-local CAPTION_SIZE, CAPTION_GAP, MIN_STEP, FALLBACK_STEP = 8, 3, 37, 52
-local BAR_ORDER = { "follow", "stay", "attack", "passive", "pull", "dungeon", "summon", "alts", "recruit", "release" }
+local CAPTION_GAP, MIN_STEP, FALLBACK_STEP = 3, 37, 52
+local BAR_ORDER = { "follow", "stay", "attack", "passive", "pull", "dungeon", "summon", "alts", "recruit", "maintank", "release" }
 -- A member of unknown role is asked "co ?" this long after it shows up (a lfg recruit announces
 -- its role on its own first), and the "Strategies: ..." answer is hidden for PROBE_WINDOW seconds.
 local PROBE_DELAY, PROBE_WINDOW, PROBE_RETRY = 3, 10, 30
@@ -396,6 +533,138 @@ local ICON_PULL_ON, ICON_PULL_OFF = "Interface\\Icons\\Ability_Marksmanship", "I
 -- names of the world show through. The role buttons use square icons, like the bar.
 local PANEL_BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 	tile = false, edgeSize = 24, insets = { left = 6, right = 6, top = 6, bottom = 6 } }
+-- Pieces shared by the My alts and Missions panels (Missions.lua reads them as SquidBotsLite_UI): a card per
+-- character, its class icon, square icon buttons with a tooltip, the gathering skills' icons.
+local ui = {
+	CARD = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1,
+		insets = { left = 1, right = 1, top = 1, bottom = 1 } },
+	SKILL_ICON = { mining = "Interface\\Icons\\Trade_Mining", herbalism = "Interface\\Icons\\INV_Misc_Flower_02",
+		skinning = "Interface\\Icons\\INV_Misc_Pelt_Wolf_01", fishing = "Interface\\Icons\\Trade_Fishing",
+		cloth = "Interface\\Icons\\INV_Fabric_Linen_01" },
+	LOOT_ICON = { mining = "Interface\\Icons\\INV_Ore_Copper_01", herbalism = "Interface\\Icons\\INV_Misc_Herb_07",
+		skinning = "Interface\\Icons\\INV_Misc_LeatherScrap_03", fishing = "Interface\\Icons\\INV_Misc_Fish_02",
+		cloth = "Interface\\Icons\\INV_Fabric_Linen_01" },
+	UNKNOWN = "Interface\\Icons\\INV_Misc_QuestionMark", NOBODY = "Interface\\CharacterFrame\\TempPortrait",
+}
+SquidBotsLite_UI = ui
+ui.PANEL_BACKDROP = PANEL_BACKDROP
+
+-- A card: dark, a thin border that turns gold under the mouse.
+function ui.Card(frame)
+	frame:SetBackdrop(ui.CARD)
+	frame:SetBackdropColor(0.09, 0.09, 0.11, 0.95)
+	frame:SetBackdropBorderColor(1, 1, 1, 0.08)
+	frame:EnableMouse(true)
+	frame:HookScript("OnEnter", function(self) self:SetBackdropBorderColor(1, 0.82, 0, 0.55) end)
+	frame:HookScript("OnLeave", function(self) self:SetBackdropBorderColor(1, 1, 1, 0.08) end)
+end
+
+-- "Name" in its class colour, as noted in SquidBotsLiteDB.altInfo.
+function ui.ClassName(name)
+	local info = SquidBotsLiteDB.altInfo and SquidBotsLiteDB.altInfo[name]
+	local color = info and info.token and RAID_CLASS_COLORS and RAID_CLASS_COLORS[info.token]
+	if not color then return name end
+	return string.format("|cff%02x%02x%02x%s|r", color.r * 255, color.g * 255, color.b * 255, name)
+end
+
+-- Its class icon: the client ships one for every class, CoA ones too, as Interface\Icons\ClassIcon_<token>
+-- (ClassIcon_SonOfArugal for SONOFARUGAL). A class not seen yet: its portrait while it is in the group, else
+-- the client's blank portrait.
+function ui.ClassIcon(texture, name)
+	local info = SquidBotsLiteDB.altInfo and SquidBotsLiteDB.altInfo[name]
+	texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+	if info and info.token then
+		texture:SetTexture("Interface\\Icons\\ClassIcon_" .. info.token:lower())
+		return
+	end
+	local units = { "player" }
+	for i = 1, 4 do table.insert(units, "party" .. i) end
+	for i = 1, GetNumRaidMembers() do table.insert(units, "raid" .. i) end
+	for _, unit in ipairs(units) do
+		if UnitName(unit) == name then
+			SetPortraitTexture(texture, unit)
+			return
+		end
+	end
+	texture:SetTexture(ui.NOBODY)
+end
+
+-- A square icon button; tip(self) returns its title and its line.
+function ui.IconButton(parent, size, icon, tip, onClick)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetWidth(size)
+	button:SetHeight(size)
+	button.icon = button:CreateTexture(nil, "ARTWORK")
+	button.icon:SetAllPoints()
+	button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+	button.icon:SetTexture(icon)
+	button.border = button:CreateTexture(nil, "BACKGROUND")
+	button.border:SetTexture("Interface\\Buttons\\WHITE8X8")
+	button.border:SetVertexColor(0, 0, 0, 0.9)
+	button.border:SetPoint("TOPLEFT", -1, 1)
+	button.border:SetPoint("BOTTOMRIGHT", 1, -1)
+	button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+	button:SetScript("OnMouseDown", function(self) if self:IsEnabled() == 1 then self.icon:SetVertexColor(0.6, 0.6, 0.6) end end)
+	button:SetScript("OnMouseUp", function(self) self.icon:SetVertexColor(1, 1, 1) end)
+	button:SetScript("OnClick", onClick)
+	button:SetScript("OnEnter", function(self)
+		local title, line = tip(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetText(title or "", 1, 0.82, 0)
+		if line then GameTooltip:AddLine(line, 1, 1, 1, true) end
+		GameTooltip:Show()
+	end)
+	button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	return button
+end
+
+function ui.SetIcon(button, icon, enabled)
+	button.icon:SetTexture(icon)
+	button.icon:SetDesaturated(not enabled)
+	if enabled then button:Enable() else button:Disable() end
+end
+
+-- The game's red buttons (UIPanelButtonTemplate) made flat: dark, a thin gold border, a gold glow under the
+-- mouse and when lit (LockHighlight: the open tab, the active mode). Text, clicks and scripts are unchanged.
+local FLAT_EDGE = { edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
+function ui.Flatten(button)
+	if button.flat then return end
+	button.flat = true
+	for _, def in ipairs({ { "Normal", 0.13, 0.13, 0.15, 0.95 }, { "Pushed", 0.07, 0.07, 0.08, 0.95 },
+		{ "Disabled", 0.09, 0.09, 0.10, 0.8 }, { "Highlight", 1, 0.82, 0, 0.2 } }) do
+		button["Set" .. def[1] .. "Texture"](button, "Interface\\Buttons\\WHITE8X8")
+		local texture = button["Get" .. def[1] .. "Texture"](button)
+		texture:SetTexCoord(0, 1, 0, 1)
+		texture:SetVertexColor(def[2], def[3], def[4], def[5])
+		texture:ClearAllPoints()
+		texture:SetPoint("TOPLEFT", 1, -1)
+		texture:SetPoint("BOTTOMRIGHT", -1, 1)
+	end
+	button:GetHighlightTexture():SetBlendMode("ADD")
+	button:SetBackdrop(FLAT_EDGE)
+	button:SetBackdropBorderColor(1, 0.82, 0, 0.35)
+end
+
+-- Every red button under a frame, its children's too.
+function ui.FlattenAll(frame)
+	for _, child in ipairs({ frame:GetChildren() }) do
+		local normal = child.GetNormalTexture and child:GetNormalTexture()
+		local path = normal and normal:GetTexture()
+		if type(path) == "string" and path:lower():find("ui%-panel%-button%-up") then ui.Flatten(child) end
+		ui.FlattenAll(child)
+	end
+end
+
+-- A thin gold line across a panel, at y from its top.
+function ui.Rule(f, y)
+	local rule = f:CreateTexture(nil, "ARTWORK")
+	rule:SetTexture("Interface\\Buttons\\WHITE8X8")
+	rule:SetVertexColor(1, 0.82, 0, 0.18)
+	rule:SetHeight(1)
+	rule:SetPoint("TOPLEFT", 16, y)
+	rule:SetPoint("TOPRIGHT", -16, y)
+	return rule
+end
 local ROLE_BUTTON_ICONS = { tank = "Interface\\Icons\\Ability_Defend", heal = "Interface\\Icons\\Spell_Holy_FlashHeal",
 	dps = "Interface\\Icons\\Ability_MeleeDamage" }
 local BINDINGS = { { "follow", "FOLLOW" }, { "stay", "STAY" }, { "attack", "M_ATTACK" }, { "passive", "TOGGLE_PASSIVE" }, { "pull", "TOGGLE_PULL" },
@@ -412,7 +681,7 @@ end
 
 local function SetLanguage(lang)
 	if lang == "cn" or lang == "zhcn" or lang == "zhtw" then lang = "zh" end
-	if lang ~= "fr" and lang ~= "en" and lang ~= "zh" then
+	if not STRINGS[lang] then
 		lang = "zh"
 	end
 	SquidBotsLiteDB.lang = lang
@@ -423,6 +692,19 @@ local function SetLanguage(lang)
 		_G["BINDING_NAME_SQUIDBOTSLITE_" .. string.upper(binding[1])] = L[binding[2]]
 	end
 	BINDING_NAME_SQUIDBOTSLITE_SPECS = L.SPECS
+	BINDING_NAME_SQUIDBOTSLITE_TANKPULL = L.BIND_TANKPULL
+	BINDING_NAME_SQUIDBOTSLITE_RECALLALL = L.BIND_RECALL
+end
+
+-- "autogear" makes new gear on the server and cannot be undone: one Yes/No first, for a bot or the whole group.
+StaticPopupDialogs.SQUIDBOTSLITE_AUTOGEAR_GROUP = {
+	text = "%s", button1 = YES, button2 = NO, timeout = 0, whileDead = 1, hideOnEscape = 1,
+	OnAccept = function(self) if self.data then self.data() end end,
+}
+local function AskAutogear(text, send)
+	StaticPopupDialogs.SQUIDBOTSLITE_AUTOGEAR_GROUP.text = text
+	local dialog = StaticPopup_Show("SQUIDBOTSLITE_AUTOGEAR_GROUP")
+	if dialog then dialog.data = send end
 end
 
 local function SendGroup(...)
@@ -437,8 +719,31 @@ local function SendGroup(...)
 	return true
 end
 
+-- Orders the addon whispers to a bot ("s junk", "repair", "mission status"...) stay out of the chat frame: the
+-- player clicked a button, the "To [Alt]: ..." echo only adds noise. Typed whispers are never hidden.
+local quietSent = {}
+function SquidBotsLite_QuietWhisper(text, name)
+	quietSent[string.lower(name) .. "" .. text] = GetTime() + 10
+	SendChatMessage(text, "WHISPER", nil, name)
+end
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", function(_, _, message, target)
+	local key = string.lower(target or "") .. "" .. (message or "")
+	local until_ = quietSent[key]
+	if until_ and GetTime() <= until_ then return true end
+	quietSent[key] = nil
+end)
+
 local function Whisper(name, message)
-	SendChatMessage(message, "WHISPER", nil, name)
+	SquidBotsLite_QuietWhisper(message, name)
+end
+
+-- The role a member queued as in the Dungeon Finder (3.3.5: three booleans; later clients: one word), else nil.
+-- A bot the finder brings has no "Bot" surname and is no alt: this is the role it shows until it answers "co ?".
+local function LfgRole(unit)
+	if not unit or not UnitGroupRolesAssigned then return end
+	local tank, heal, dps = UnitGroupRolesAssigned(unit)
+	if type(tank) == "string" then return ({ TANK = "tank", HEALER = "heal", DAMAGER = "dps" })[tank] end
+	return tank and "tank" or heal and "heal" or dps and "dps" or nil
 end
 
 local function SetRoleIcon(texture, role)
@@ -452,47 +757,12 @@ local function SetRoleIcon(texture, role)
 	end
 end
 
-local function FindChannel()
-	local list = { GetChannelList() }
-	local joined, i = {}, 1
-	while i <= #list do
-		if type(list[i]) == "number" and type(list[i + 1]) == "string" then
-			table.insert(joined, { id = list[i], name = list[i + 1] })
-			i = i + 2
-		else
-			i = i + 1
-		end
-	end
-	local wanted = {}
-	if SquidBotsLiteDB.channel and SquidBotsLiteDB.channel ~= "" then
-		table.insert(wanted, SquidBotsLiteDB.channel)
-	end
-	for _, name in ipairs(CHANNELS) do
-		table.insert(wanted, name)
-	end
-	for _, want in ipairs(wanted) do
-		for _, channel in ipairs(joined) do
-			if string.lower(channel.name):find("^" .. string.lower(want)) then
-				return channel.id, channel.name
-			end
-		end
-	end
-end
-
--- Joined channels do not survive a relog here, so join Bots ourselves and show it
--- in the main chat window (that is where the bots' answers appear).
-local function IsInBotsChannel()
-	local id = GetChannelName(BOTS_CHANNEL)
-	return id and id > 0
-end
-
 local function EnsureBotsChannel()
-	if IsInBotsChannel() then return true end
+	if (GetChannelName(BOTS_CHANNEL) or 0) > 0 then return end
 	JoinChannelByName(BOTS_CHANNEL)
 	if DEFAULT_CHAT_FRAME and ChatFrame_AddChannel then
 		ChatFrame_AddChannel(DEFAULT_CHAT_FRAME, BOTS_CHANNEL)
 	end
-	return false
 end
 
 local function Ask(roles)
@@ -502,21 +772,39 @@ local function Ask(roles)
 		end
 		return
 	end
-	-- Not in Bots yet (login join still pending): join now. The channel id is only
-	-- assigned once the server confirms, so the request has to be sent again.
-	local custom = SquidBotsLiteDB.channel
-	if (not custom or custom == "" or custom:lower() == BOTS_CHANNEL:lower()) and not EnsureBotsChannel() then
-		Print(L.JOINING_BOTS)
+	local channel = SquidBotsLiteDB.channel
+	if not channel or channel == "" then channel = BOTS_CHANNEL end
+	local id, name = GetChannelName(channel)
+	if not id or id <= 0 then
+		if channel:lower() == BOTS_CHANNEL:lower() then
+			EnsureBotsChannel()
+			Print(L.JOINING_BOTS)
+		else
+			Print(string.format(L.NO_CHANNEL, channel))
+		end
 		return
 	end
-	local id, name = FindChannel()
-	if not id then
-		Print(L.NO_CHANNEL)
-		return
-	end
+	name = name or channel
 	local message = "lfg bot " .. roles
 	SendChatMessage(message, "CHANNEL", nil, id)
 	Print(string.format(L.ASKED, name, message))
+	-- No offer at all for a role a while later: say why (the server only sends bots close to the player's level)
+	-- and what to do, instead of leaving the player waiting.
+	local asked = GetTime()
+	state.askTimer = state.askTimer or CreateFrame("Frame")
+	state.askTimer:SetScript("OnUpdate", function(frame)
+		if GetTime() - asked < ASK_WAIT then return end
+		frame:SetScript("OnUpdate", nil)
+		local missing = {}
+		for role in roles:gmatch("%a+") do
+			local found = false
+			for _, offer in ipairs(toasts) do
+				if offer.role == role and offer.expires - OFFER_SECONDS >= asked then found = true end
+			end
+			if not found then table.insert(missing, L["ROLE_" .. string.upper(role)] or role) end
+		end
+		if #missing > 0 then Print(string.format(L.ASK_NONE, string.lower(table.concat(missing, ", ")))) end
+	end)
 end
 
 -- A menu closes on its own once the mouse has left it this many seconds (the game keeps it open otherwise).
@@ -524,16 +812,32 @@ local MENU_HIDE_DELAY = 1
 local menuFrame = CreateFrame("Frame", "SquidBotsLiteMenu", UIParent, "UIDropDownMenuTemplate")
 -- The game closes a menu only on a click in the world, not over an addon window, and its own hide delay does
 -- not apply to these menus: a menu of the addon closes a second after the mouse left it, or on a click on our panels.
+-- A menu opens at the cursor, the mouse on its very edge (or beside it, when the game flips it near the screen
+-- bottom): it was closed a second later while the player had not moved yet (Maky, 2.9.1). The mouse now has to
+-- enter it once (with a few pixels to spare) before leaving counts, and an untouched menu stays FIRST seconds.
 local menuWatch = CreateFrame("Frame")
+menuWatch.FIRST, menuWatch.MARGIN = 6, 6
 menuWatch:Hide()
+local function MouseOverMenu(list)
+	local m = menuWatch.MARGIN
+	return list and list:IsShown() and MouseIsOver(list, m, -m, -m, m)
+end
 menuWatch:SetScript("OnUpdate", function(self)
-	local list1, list2 = _G.DropDownList1, _G.DropDownList2
+	local list1 = _G.DropDownList1
 	if not list1 or not list1:IsShown() then self:Hide() return end
-	if MouseIsOver(list1) or (list2 and list2:IsShown() and MouseIsOver(list2)) then
-		self.left = nil
+	local now = GetTime()
+	if MouseOverMenu(list1) or MouseOverMenu(_G.DropDownList2) then
+		self.entered, self.left = true, nil
+	elseif not self.entered then
+		-- The game's own countdown (the hide delay given to EasyMenu) waits too, if it already runs.
+		if UIDropDownMenu_StopCounting then UIDropDownMenu_StopCounting(list1) end
+		if now - self.opened > self.FIRST then
+			CloseDropDownMenus()
+			self:Hide()
+		end
 	else
-		self.left = self.left or GetTime()
-		if GetTime() - self.left > MENU_HIDE_DELAY then
+		self.left = self.left or now
+		if now - self.left > MENU_HIDE_DELAY then
 			CloseDropDownMenus()
 			self:Hide()
 		end
@@ -541,7 +845,7 @@ menuWatch:SetScript("OnUpdate", function(self)
 end)
 
 function SquidBotsLite_WatchMenu()
-	menuWatch.left = nil
+	menuWatch.left, menuWatch.entered, menuWatch.opened = nil, nil, GetTime()
 	menuWatch:Show()
 end
 
@@ -563,6 +867,75 @@ local function TargetIsNpc()
 end
 
 local ShowAlts, ShowSpecs
+-- Dungeon clear (mod-dungeon-clear on the server): the player's own ".dc" commands, sent in /say like ".playerbots".
+-- Whether the realm has the module is asked once a session: ".dc status" whispered to oneself, so that without
+-- the module the line never shows in /say (the server pretends a command it lacks does not exist, and the
+-- whisper comes back). The answer is kept out of the chat. dc.module: nil (not known yet), "on", "off" (installed,
+-- DungeonClear.Enable = 0), "absent".
+-- One table for all of it: the client allows 200 locals in a file's main chunk.
+local dc = { module = nil, probeAt = nil, waitUntil = nil, pull = nil, PROBE_DELAY = 8, PROBE_WAIT = 5, LINE_KEEP = 6 }
+
+function dc.Send(args)
+	SendChatMessage(".dc " .. args, "SAY")
+end
+
+-- ".dc on" needs to be inside a dungeon; the tank bot leads (a player tanking has no tank bot to lead).
+function dc.Start()
+	local inside, kind = IsInInstance()
+	if not inside or (kind ~= "party" and kind ~= "raid") then
+		Print(L.DC_NOT_IN_DUNGEON)
+		return
+	end
+	-- 2.9.4: the clear moves the group and overrides the tank orders: Main tank goes off first (MainTank.lua).
+	if SquidBotsLite_MainTankOffForDc then SquidBotsLite_MainTankOffForDc() end
+	dc.Send("on")
+end
+
+function dc.Tick()
+	if buttons.dungeon then
+		buttons.dungeon.tip = (dc.module == "on" or dc.module == "off") and "TIP_DUNGEON_DC" or "TIP_DUNGEON"
+	end
+	if dc.module or not dc.probeAt then return end
+	local now = GetTime()
+	if not dc.waitUntil then
+		if now < dc.probeAt then return end
+		dc.waitUntil = now + dc.PROBE_WAIT
+		SendChatMessage(".dc status", "WHISPER", nil, UnitName("player"))
+	elseif now > dc.waitUntil then
+		dc.module, dc.waitUntil = "absent", nil
+	end
+end
+
+function dc.Probing()
+	return dc.waitUntil and GetTime() <= dc.waitUntil
+end
+
+-- The probe's answers: a system line from the module, or the whisper back to oneself without it. The chat
+-- frames see an event before our frame does, so their filter only reads, and the handler decides.
+function dc.IsAnswer(message)
+	return message:find("^mod%-dungeon%-clear is disabled on this server") or message == "No tank bot found in your group."
+		or message == "This command must be used in-game."
+end
+
+function dc.JustAnswered()
+	return dc.Probing() or (dc.answeredAt and GetTime() - dc.answeredAt < 1)
+end
+
+function dc.OnSystem(message)
+	if message:find("^mod%-dungeon%-clear is disabled on this server") then
+		if dc.Probing() then dc.answeredAt = GetTime() end
+		dc.module, dc.waitUntil = "off", nil
+	elseif dc.Probing() and dc.IsAnswer(message) then
+		dc.module, dc.waitUntil, dc.answeredAt = "on", nil, GetTime()
+	end
+end
+
+function dc.OnWhisperBack(message, name)
+	if message == ".dc status" and name == UnitName("player") and dc.Probing() then
+		dc.module, dc.waitUntil, dc.answeredAt = "absent", nil, GetTime()
+	end
+end
+
 local function RecruitMenu()
 	local items = {
 		{ text = L.RECRUIT, isTitle = true, notCheckable = true },
@@ -572,10 +945,13 @@ local function RecruitMenu()
 		{ text = L.ASK_ALL, notCheckable = true, func = function() Ask("tank heal dps") end },
 		-- The server answers with a system message: raid built, or how long to wait (players: 30 min).
 		{ text = L.RAID_10, notCheckable = true, func = function() SendChatMessage(".playerbots coa raid 10", "SAY") end },
+		{ text = L.RAID_15, notCheckable = true, func = function() SendChatMessage(".playerbots coa raid 15", "SAY") end },
 		{ text = L.RAID_25, notCheckable = true, func = function() SendChatMessage(".playerbots coa raid 25", "SAY") end },
 		{ text = L.ALTS, notCheckable = true, func = function() ShowAlts() end },
 		{ text = L.SPECS, notCheckable = true, func = function() ShowSpecs() end },
-		{ text = L.GEAR, notCheckable = true, func = function() SendGroup("autogear") end },
+		{ text = L.GEAR, notCheckable = true, func = function()
+			AskAutogear(L.GEAR_ASK_ALL, function() SendGroup("autogear") end)
+		end },
 		{ text = L.REPAIR, notCheckable = true, func = function() SendGroup("repair") end },
 		{ text = L.TRAIN, notCheckable = true, func = function() if TargetIsNpc() then SendGroup("trainer learn") end end },
 		-- "accept *": each bot takes every quest offered by the quest givers within reach of it (alts too).
@@ -627,6 +1003,11 @@ local function SendOrder(...)
 	return SendGroup(...)
 end
 
+-- Key binding: only the tank attacks the player's target (the "Orders by role" menu's first line).
+function SquidBotsLite_TankPull()
+	SendOrder("@tank attack")
+end
+
 local function ProfileMenu()
 	local roleOrders = {
 		{ text = L.R_TANK_ATTACK, notCheckable = true, func = function() SendOrder("@tank attack") end },
@@ -653,7 +1034,9 @@ local function ProfileMenu()
 		end },
 		{ text = L.ROLE_ORDERS, hasArrow = true, notCheckable = true, menuList = roleOrders },
 		{ text = L.FORMATION, hasArrow = true, notCheckable = true, menuList = formations },
-		{ text = L.GEAR, notCheckable = true, func = function() SendGroup("autogear") end },
+		{ text = L.GEAR, notCheckable = true, func = function()
+			AskAutogear(L.GEAR_ASK_ALL, function() SendGroup("autogear") end)
+		end },
 		{ text = L.REPAIR, notCheckable = true, func = function() SendGroup("repair") end },
 	}
 end
@@ -669,16 +1052,49 @@ end
 -- server never overrides it. The lists come from the bots, so every class and the specs of a later release
 -- show up without a table here.
 -- Only members known to be bots are asked anything: one that answered like a bot ("co ?", a lfg offer, a
--- "joins as" line, a list) or carries the "Bot" surname. A WotLK class (an alt of an old class) has no CoA
--- specialization and is left alone. Nothing is switched blind: a role waits for the bot's list.
+-- "joins as" line, a list) or carries the "Bot" surname. Nothing is switched blind: a role waits for the bot's
+-- list.
+-- A WotLK class has no CoA specialization: on a Warcraft Reborn realm every bot is one, with the three classic
+-- trees of its class (Blizzard order). Their list is the table below, "wcr" asks the bot its tree and
+-- "wcr spec <0-2>" switches it; an answer naming one of the class's trees (in English) gives the active one.
 local SPEC_WAIT, SPEC_HIDE, SPEC_REASK, REAPPLY_AFTER = 5, 8, 30, 1.5   -- seconds
 local ROLE_WORDS = { tank = "tank", healer = "heal", damage = "dps" }
 local ROLE_KEYS = { tank = "ROLE_TANK", heal = "ROLE_HEAL", dps = "ROLE_DPS" }
 local ROLES = { "tank", "heal", "dps" }
 local WOTLK_TOKENS = { WARRIOR = true, PALADIN = true, HUNTER = true, ROGUE = true, PRIEST = true, DEATHKNIGHT = true,
 	SHAMAN = true, MAGE = true, WARLOCK = true, DRUID = true }
+-- The classic trees, index 0 to 2 as "wcr spec" takes them: English name, French name, role.
+local WCR_SPECS = {
+	WARRIOR = { { "Arms", "Armes", "dps" }, { "Fury", "Fureur", "dps" }, { "Protection", "Protection", "tank" } },
+	PALADIN = { { "Holy", "Sacré", "heal" }, { "Protection", "Protection", "tank" }, { "Retribution", "Vindicte", "dps" } },
+	HUNTER = { { "Beast Mastery", "Maîtrise des bêtes", "dps" }, { "Marksmanship", "Précision", "dps" }, { "Survival", "Survie", "dps" } },
+	ROGUE = { { "Assassination", "Assassinat", "dps" }, { "Combat", "Combat", "dps" }, { "Subtlety", "Finesse", "dps" } },
+	PRIEST = { { "Discipline", "Discipline", "heal" }, { "Holy", "Sacré", "heal" }, { "Shadow", "Ombre", "dps" } },
+	DEATHKNIGHT = { { "Blood", "Sang", "tank" }, { "Frost", "Givre", "dps" }, { "Unholy", "Impie", "dps" } },
+	SHAMAN = { { "Elemental", "Élémentaire", "dps" }, { "Enhancement", "Amélioration", "dps" }, { "Restoration", "Restauration", "heal" } },
+	MAGE = { { "Arcane", "Arcanes", "dps" }, { "Fire", "Feu", "dps" }, { "Frost", "Givre", "dps" } },
+	WARLOCK = { { "Affliction", "Affliction", "dps" }, { "Demonology", "Démonologie", "dps" }, { "Destruction", "Destruction", "dps" } },
+	DRUID = { { "Balance", "Équilibre", "dps" }, { "Feral Combat", "Combat farouche", "tank" }, { "Restoration", "Restauration", "heal" } },
+}
+-- The WotLK classes as the lfg offers name them (English), with their token and French name.
+local WCR_CLASSES = {
+	{ "Death Knight", "DEATHKNIGHT", "Chevalier de la mort" }, { "Warrior", "WARRIOR", "Guerrier" }, { "Paladin", "PALADIN", "Paladin" },
+	{ "Hunter", "HUNTER", "Chasseur" }, { "Rogue", "ROGUE", "Voleur" }, { "Priest", "PRIEST", "Prêtre" },
+	{ "Shaman", "SHAMAN", "Chaman" }, { "Mage", "MAGE", "Mage" }, { "Warlock", "WARLOCK", "Démoniste" }, { "Druid", "DRUID", "Druide" },
+}
 -- Set aside by the server (CoaExcludedSpecializations): nothing in the core lets Bloodmage Eternal tank.
 local EXCLUDED_SPECS = { Eternal = true }
+local WCR_SPEC_ZH = {
+	Arms = "武器", Fury = "狂怒", Protection = "防护", Holy = "神圣", Retribution = "惩戒",
+	["Beast Mastery"] = "野兽控制", Marksmanship = "射击", Survival = "生存", Assassination = "刺杀",
+	Combat = "战斗", Subtlety = "敏锐", Discipline = "戒律", Shadow = "暗影", Blood = "鲜血",
+	Frost = "冰霜", Unholy = "邪恶", Elemental = "元素", Enhancement = "增强", Restoration = "恢复",
+	Arcane = "奥术", Fire = "火焰", Affliction = "痛苦", Demonology = "恶魔学识", Destruction = "毁灭",
+	Balance = "平衡", ["Feral Combat"] = "野性战斗",
+}
+local function SpecDisplayName(name)
+	return (SquidBotsLiteDB.lang == "zh" and WCR_SPEC_ZH[name]) or name
+end
 -- Orders the addon sends to one bot after a switch (the server resets its strategies), kept out of the chat.
 local REAPPLY_ORDERS = { ["co +passive"] = true, ["nc -coa auto pull"] = true, ["co -wait for attack,+avoid aoe"] = true, stay = true }
 local SPEC_ROWS = 4
@@ -691,6 +1107,10 @@ local balancePending
 local function UnitOf(name)
 	for i = 1, 4 do
 		if UnitName("party" .. i) == name then return "party" .. i end
+	end
+	-- In a raid, party1-4 hold only the player's own subgroup.
+	for i = 1, GetNumRaidMembers() do
+		if UnitName("raid" .. i) == name then return "raid" .. i end
 	end
 end
 
@@ -709,14 +1129,28 @@ local function IsGroupLeader(name)
 	return unit and UnitIsPartyLeader(unit) and true or false
 end
 
-local function IsCoaBot(name)
+-- The WotLK class token of a party member (a Warcraft Reborn bot, or an alt of an old class), else nil.
+local function WcrToken(name)
 	local unit = UnitOf(name)
-	if unit then
-		local _, token = UnitClass(unit)
-		if token and WOTLK_TOKENS[token] then return false end
-	end
+	if not unit then return end
+	local _, token = UnitClass(unit)
+	if token and WOTLK_TOKENS[token] then return token end
+end
+
+-- A bot of the player's group, CoA class or WotLK class alike.
+local function IsCoaBot(name)
 	-- An alt of this account (seen offline in My alts, or logged in by the player) is a bot of theirs too.
 	return knownBot[name] or name:find(" Bot$") ~= nil or (SquidBotsLiteDB.alts and SquidBotsLiteDB.alts[name]) == true
+end
+function SquidBotsLite_IsBot(name) return name and IsCoaBot(name) end
+
+-- The three trees of a WotLK class bot, named in the addon's language: no list to wait for.
+local function WcrList(token)
+	local list, fr = {}, SquidBotsLiteDB.lang == "fr"
+	for i, tree in ipairs(WCR_SPECS[token]) do
+		table.insert(list, { name = fr and tree[2] or tree[1], en = tree[1], index = i - 1, role = tree[3] })
+	end
+	return list
 end
 
 -- True when the question went out: a member not known as a bot yet is asked once it is (TickSpecs).
@@ -726,7 +1160,14 @@ local function AskSpecs(name)
 	specAskedOnce[name] = GetTime()
 	specSilent[name] = nil
 	specHideUntil[name] = GetTime() + SPEC_HIDE
-	Whisper(name, "talents spec list")
+	local token = WcrToken(name)
+	if token then
+		local info = specsByName[name]
+		if not info or info.wcr ~= token then specsByName[name] = { list = WcrList(token), wcr = token } end
+		Whisper(name, "wcr")
+	else
+		Whisper(name, "talents spec list")
+	end
 	return true
 end
 
@@ -778,16 +1219,23 @@ local function PickSpec(name, specName)
 	Remember(name, specName, spec.role)
 	specHideUntil[name] = GetTime() + SPEC_HIDE
 	reapplyAt[name] = GetTime() + REAPPLY_AFTER
-	Whisper(name, "talents spec " .. specName)
+	if spec.index then
+		Whisper(name, "wcr spec " .. spec.index)
+	else
+		Whisper(name, "talents spec " .. specName)
+	end
 end
 
 -- A role: nothing if the bot already plays it, else the specialization it last played in that role, else
--- its first one. Without its list yet, the bot is asked and the role waits for the answer.
+-- its first one. Without its list yet, the bot is asked and the role waits for the answer (a WotLK class bot
+-- has its list at once).
 local function PickRole(name, role)
 	if not specsByName[name] then
-		pendingRole[name] = role
 		AskSpecs(name)
-		return
+		if not (specsByName[name] and specsByName[name].wcr) then
+			pendingRole[name] = role
+			return
+		end
 	end
 	if CurrentRole(name) == role then return end
 	local specs = SpecsForRole(name, role)
@@ -920,8 +1368,63 @@ local function ParseNow(message)
 	if picked and ROLE_WORDS[word] then return picked, ROLE_WORDS[word] end
 end
 
+-- The tree a WotLK class bot names in its answer to "wcr" or "wcr spec <n>", read only for a few seconds after
+-- the addon asked: the one tree of its class named, else the one marked active (">", "*", "active", "current"),
+-- else the index after "spec".
+local function ParseWcr(name, message)
+	local info = specsByName[name]
+	if not (info and info.wcr) or not specHideUntil[name] or GetTime() > specHideUntil[name] then return end
+	-- The answer to "co ?" names strategies such as "frost" or "holy": not a tree.
+	if message:find("^Strategies: ") then return end
+	-- "wcr spec <n>" is followed by the list of the trees ("spec 0: Holy (heal)"), the active one marked ">spec":
+	-- a list line only lists, it is hidden without changing the spec read from the "WCR spec <n>:" header.
+	if message:find("^%s*>?%s*spec%s*%d") then return nil, true end
+	local function TreeIn(text)
+		local found, count = nil, 0
+		local lower = string.lower(text)
+		for _, spec in ipairs(info.list) do
+			local word = string.lower(spec.en)
+			if lower:find(word, 1, true) or (spec.en == "Feral Combat" and lower:find("feral", 1, true)) then
+				found, count = spec, count + 1
+			end
+		end
+		return found, count
+	end
+	local found, count = TreeIn(message)
+	if count == 1 then return found end
+	if count > 1 then
+		for part in (message .. "\n"):gmatch("([^,;|\n]+)") do
+			local lower = string.lower(part)
+			if part:find(">", 1, true) or part:find("*", 1, true) or lower:find("active", 1, true) or lower:find("current", 1, true) then
+				local spec, n = TreeIn(part)
+				if n == 1 then return spec end
+			end
+		end
+	end
+	local index = tonumber(string.lower(message):match("spec%s*[:=]?%s*(%d)"))
+	if index and info.list[index + 1] then return info.list[index + 1] end
+end
+
 -- An answer of a bot about its specializations: true when it was one.
 local function OnSpecReply(message, sender)
+	local tree, listLine = ParseWcr(sender, message)
+	if listLine then return true end
+	if tree then
+		knownBot[sender] = true
+		local info = specsByName[sender]
+		local asked = specAskedAt[sender] ~= nil
+		specAskedAt[sender] = nil
+		info.current = tree.name
+		roleByName[sender] = tree.role
+		Remember(sender, tree.name, tree.role)
+		if not asked then Print(string.format(L.SPEC_NOW, sender, tree.name, L[ROLE_KEYS[tree.role]])) end
+		if pendingRole[sender] then
+			local wanted = pendingRole[sender]
+			pendingRole[sender] = nil
+			PickRole(sender, wanted)
+		end
+		return true
+	end
 	local picked, role = ParseNow(message)
 	if picked then
 		knownBot[sender] = true
@@ -962,9 +1465,10 @@ local function HideSpecChat(_, event, message, name)
 	local untilTime = specHideUntil[name]
 	if not untilTime or GetTime() > untilTime then return end
 	if event == "CHAT_MSG_WHISPER_INFORM" then
-		return message:find("^talents spec ") ~= nil or REAPPLY_ORDERS[message] ~= nil
+		return message:find("^talents spec ") ~= nil or message == "wcr" or message:find("^wcr spec %d$") ~= nil
+			or REAPPLY_ORDERS[message] ~= nil
 	end
-	return ParseNow(message) ~= nil or ParseSpecList(message) ~= nil
+	return ParseWcr(name, message) ~= nil or ParseNow(message) ~= nil or ParseSpecList(message) ~= nil
 end
 -- A bot answers on the channel of the last order it got within a second, so the group channels too.
 for _, e in ipairs({ "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER",
@@ -985,7 +1489,7 @@ local function SpecMenu(name)
 			table.insert(items, { text = "|cffaaaaaa" .. L.SPEC_ALT_NOTE .. "|r", notCheckable = true, disabled = true })
 		end
 		for _, spec in ipairs(info.list) do
-			local label = spec.name .. " |cffaaaaaa(" .. L[ROLE_KEYS[spec.role]] .. (spec.support and ", " .. L.SUPPORT or "") .. ")|r"
+			local label = SpecDisplayName(spec.name) .. " |cffaaaaaa(" .. L[ROLE_KEYS[spec.role]] .. (spec.support and ", " .. L.SUPPORT or "") .. ")|r"
 			table.insert(items, { text = label, checked = spec.name == info.current, disabled = EXCLUDED_SPECS[spec.name],
 				func = function() PickSpec(name, spec.name) end })
 		end
@@ -1010,7 +1514,7 @@ local function RefreshSpecs()
 			local spec = info and SpecOf(name, info.current)
 			row.name:SetText(name)
 			if spec then
-				row.spec:SetText(spec.name)
+				row.spec:SetText(SpecDisplayName(spec.name))
 			elseif specAskedAt[name] then
 				row.spec:SetText(L.SPECS_WAIT)
 			elseif not IsCoaBot(name) then
@@ -1266,7 +1770,9 @@ local function BotMenu(name)
 		table.insert(items, { text = L.M_SHEET, notCheckable = true, func = function() SquidBotsLite_OpenSheet(name) end })
 	end
 	table.insert(items, { text = L.M_STATS, notCheckable = true, func = function() Whisper(name, "stats") end })
-	table.insert(items, { text = L.M_GEAR, notCheckable = true, func = function() Whisper(name, "autogear") end })
+	table.insert(items, { text = L.M_GEAR, notCheckable = true, func = function()
+		AskAutogear(string.format(L.GEAR_ASK_ONE, name), function() Whisper(name, "autogear") end)
+	end })
 	table.insert(items, { text = L.M_KICK, notCheckable = true, func = function() UninviteUnit(name) end })
 	return items
 end
@@ -1275,8 +1781,10 @@ end
 -- The bar
 -- ---------------------------------------------------------------------------
 Highlight = function()
+	local tanking = SquidBotsLite_MainTankShown and SquidBotsLite_MainTankShown()
 	for key, button in pairs(buttons) do
 		local active = key == state.order or (key == "passive" and state.passive) or (key == "pull" and not state.autoPull)
+			or (key == "maintank" and tanking)
 		button.ring:SetVertexColor(active and 1 or 0.35, active and 0.82 or 0.35, active and 0 or 0.35)
 	end
 	local passive = buttons.passive
@@ -1291,9 +1799,18 @@ Highlight = function()
 		pull.icon:SetTexture(state.autoPull and ICON_PULL_ON or ICON_PULL_OFF)
 		pull.label = state.autoPull and "PULL_ON" or "PULL_OFF"
 		pull.tip = state.autoPull and "TIP_PULL_ON" or "TIP_PULL_OFF"
+		-- While a clear runs, mod-dungeon-clear takes "coa auto pull" off the tank and puts it back after: greyed out.
+		if dc.enabled then pull.tip = "TIP_PULL_DC" end
+		pull.icon:SetDesaturated(dc.enabled and 1 or nil)
 		pull.caption:SetText(L[pull.label])
 	end
 end
+
+-- The Main Tank bar opened or closed (MainTank.lua): the button on the bar follows.
+function SquidBotsLite_RefreshBar()
+	if bar then Highlight() end
+end
+
 
 -- Size and place of the bar, and whether it shows, are kept per character (SquidBotsLiteCharDB): a healer
 -- and a tank of the same account rarely want the bar at the same spot.
@@ -1323,17 +1840,20 @@ local function SetBarShown(shown)
 		return
 	end
 	bar:Hide()
-	for _, name in ipairs({ "SquidBotsLiteAlts", "SquidBotsLiteSpecs", "SquidBotsLiteSheet" }) do
+	for _, name in ipairs({ "SquidBotsLiteAlts", "SquidBotsLiteSpecs", "SquidBotsLiteSheet",
+		"SquidBotsLiteMissions", "SquidBotsLiteOrder", "SquidBotsLiteDashboard",
+		"SquidBotsLiteAltLog", "SquidBotsLiteAltQuests", "SquidBotsLiteAltTrainer",
+		"SquidBotsLiteTeam", "SquidBotsLiteDungeonClear" }) do
 		local panel = _G[name]
 		if panel then panel:Hide() end
 	end
 	local openMenu = UIDROPDOWNMENU_OPEN_MENU
-	if openMenu and (openMenu == menuFrame or openMenu == _G.SquidBotsLiteSheetMenu) then
+	if openMenu and (openMenu == menuFrame or openMenu == _G.SquidBotsLiteSheetMenu
+		or openMenu == _G.SquidBotsLiteTeamSettings) then
 		CloseDropDownMenus()
 	end
-	for _, dialog in ipairs({ "SQUIDBOTSLITE_TEAM", "SQUIDBOTSLITE_ACCOUNT",
-		"SQUIDBOTSLITE_ABANDON", "SQUIDBOTSLITE_AUTOPICK" }) do
-		StaticPopup_Hide(dialog)
+	for dialog in pairs(StaticPopupDialogs) do
+		if dialog:find("^SQUIDBOTSLITE_") then StaticPopup_Hide(dialog) end
 	end
 end
 
@@ -1342,6 +1862,7 @@ local function ToggleBar()
 end
 
 local function BuildMinimapButton()
+	if not Minimap then return end
 	local button = CreateFrame("Button", "SquidBotsLiteMinimapButton", Minimap)
 	button:SetSize(32, 32)
 	button:SetFrameLevel(Minimap:GetFrameLevel() + 8)
@@ -1370,7 +1891,9 @@ local function BuildMinimapButton()
 	button:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
 		GameTooltip:AddLine("SquidBots Lite")
-		GameTooltip:AddLine(L.MINIMAP_TIP, 1, 1, 1)
+		GameTooltip:AddLine(L.MINIMAP_TIP or (SquidBotsLiteDB.lang == "fr"
+			and "Cliquez pour afficher ou masquer les commandes. Faites glisser pour déplacer l’icône."
+			or "Click to show or hide the controls. Drag to move the icon."), 1, 1, 1)
 		GameTooltip:Show()
 	end)
 	button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1406,7 +1929,7 @@ local function BarButton(key, icon, label, tip, onClick)
 	button.ring:SetPoint("CENTER")
 	button.ring:SetAlpha(0.8)
 	button.caption = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	local font, _, flags = button.caption:GetFont()
+	local font = button.caption:GetFont()
 	button.caption:SetFont(STANDARD_TEXT_FONT or font, 12, "OUTLINE")
 	button.caption:SetWidth(52)
 	button.caption:SetHeight(32)
@@ -1439,6 +1962,15 @@ local function BarButton(key, icon, label, tip, onClick)
 		GameTooltip:SetOwner(self, "ANCHOR_TOP")
 		GameTooltip:SetText(L[self.label])
 		GameTooltip:AddLine(L[self.tip], 1, 1, 1, true)
+		-- Its key binding, when it has one in the game's Key Bindings window.
+		if key == "follow" or key == "stay" or key == "attack" or key == "pull" or key == "summon" then
+			local bound = GetBindingKey("SQUIDBOTSLITE_" .. string.upper(key))
+			if bound then
+				GameTooltip:AddLine(string.format(L.KEY, bound), 0.4, 0.8, 1)
+			else
+				GameTooltip:AddLine(L.NO_KEY, 0.4, 0.8, 1, true)
+			end
+		end
 		GameTooltip:AddLine(L.TIP_PROFILES, 0.6, 0.6, 0.6, true)
 		GameTooltip:AddLine(L.TIP_MOVE, 0.6, 0.6, 0.6, true)
 		GameTooltip:Show()
@@ -1454,6 +1986,11 @@ end
 -- neighbours (half of each caption either side of its icon), not the widest caption twice. "Active" and
 -- "Passive" are both counted, so the bar does not move when the button flips.
 local function LayoutBar()
+	-- A hidden Main Tank button leaves no gap (Release, hidden too, is last and keeps its place).
+	local order = {}
+	for _, key in ipairs(BAR_ORDER) do
+		if key ~= "maintank" or not buttons.maintank or buttons.maintank:IsShown() then table.insert(order, key) end
+	end
 	local measure = buttons.follow.caption
 	local shown = measure:GetText()
 	local function Width(text)
@@ -1461,7 +1998,7 @@ local function LayoutBar()
 		return measure:GetStringWidth() or 0
 	end
 	local widths = {}
-	for i, key in ipairs(BAR_ORDER) do
+	for i, key in ipairs(order) do
 		local button = buttons[key]
 		widths[i] = key == "passive" and math.max(Width(L.ACTIVE), Width(L.PASSIVE))
 			or key == "pull" and math.max(Width(L.PULL_ON), Width(L.PULL_OFF)) or Width(L[button.label])
@@ -1471,12 +2008,26 @@ local function LayoutBar()
 	for i = 1, #widths - 1 do
 		step = math.max(step, (widths[i] + widths[i + 1]) / 2)
 	end
-	step = step > 0 and math.max(MIN_STEP, math.ceil(step) + CAPTION_GAP) or FALLBACK_STEP
-	for i, key in ipairs(BAR_ORDER) do
+	local minStep = SquidBotsLiteDB.lang == "zh" and 48 or MIN_STEP
+	step = step > 0 and math.max(minStep, math.ceil(step) + CAPTION_GAP) or FALLBACK_STEP
+	for i, key in ipairs(order) do
 		buttons[key]:ClearAllPoints()
 		buttons[key]:SetPoint("TOPLEFT", 3 + (i - 1) * step, 0)
 	end
-	bar:SetWidth(#BAR_ORDER * step)
+	bar:SetWidth(#order * step)
+	-- The bar runs a little past its last button: what sits over it (Missions.lua) lines up on that button.
+	bar.last = buttons[order[#order]]
+end
+
+-- 2.9.4: the Main Tank button shows only in a raid of more than 5. Hidden while the Main Tank bar is open, the
+-- bar stays: its Leave Tank turns Main tank off.
+local function RefreshMainTankButton()
+	local button = buttons.maintank
+	if not button then return end
+	local show = GetNumRaidMembers() > 5
+	if show == (button:IsShown() and true or false) then return end
+	if show then button:Show() else button:Hide() end
+	LayoutBar()
 end
 
 local function RefreshTexts()
@@ -1526,10 +2077,16 @@ local function BuildBar()
 			if SetPassive(not state.passive) then state.passive = not state.passive; Highlight() end
 		end },
 		{ "pull", ICON_PULL_ON, "PULL_ON", "TIP_PULL_ON", function()
+			if dc.enabled then Print(L.TIP_PULL_DC) return end
 			SetAutoPull(not state.autoPull)
 		end },
+		-- On a realm with mod-dungeon-clear (on, or off: the panel then says so), the panel; elsewhere the old dungeon mode.
 		{ "dungeon", "Interface\\Icons\\Achievement_Dungeon_ClassicDungeonMaster", "DUNGEON", "TIP_DUNGEON", function()
-			if SendOrder("co -wait for attack,+avoid aoe", "follow") then SetOrder("dungeon") end
+			if dc.module == "on" or dc.module == "off" then
+				dc.TogglePanel()
+			else
+				dc.DungeonMode()
+			end
 		end },
 		{ "summon", "Interface\\Icons\\Spell_Arcane_PortalDalaran", "SUMMON", "TIP_SUMMON", function()
 			SendGroup("summon")
@@ -1542,6 +2099,10 @@ local function BuildBar()
 			ShowMenu(RecruitMenu())
 		end },
 		-- Whispered to the dead only: "release" tells a living bot to stop following and wait.
+		-- 2.9.4: the off-tank bar (MainTank.lua), the same as the Dungeon clear panel's Main Tank button.
+		{ "maintank", "Interface\\Icons\\INV_Shield_05", "MAINTANK_BAR", "TIP_MAINTANK", function()
+			dc.MainTank()
+		end },
 		{ "release", "Interface\\Icons\\Spell_Holy_Resurrection", "RELEASE", "TIP_RELEASE", function()
 			for _, name in ipairs(DeadMembers()) do Whisper(name, "release") end
 		end },
@@ -1550,7 +2111,9 @@ local function BuildBar()
 		BarButton(def[1], def[2], def[3], def[4], def[5])
 	end
 	buttons.release:Hide()
+	buttons.maintank:Hide()
 	RefreshTexts()
+	RefreshMainTankButton()
 	Highlight()
 	if SquidBotsLiteCharDB.hidden ~= false then
 		bar:Hide()
@@ -1598,7 +2161,7 @@ local function BuildOverlays()
 			overlay:SetFrameLevel(frame:GetFrameLevel() + 5)
 			-- The party frame's own role icon peeked out under ours (#5439): ours shows the role, the native one is hidden.
 			local nativeRole = _G["PartyMemberFrame" .. i .. "RoleIcon"]
-			-- Native role indicator remains managed by the game / UFI.
+			if nativeRole then nativeRole:SetAlpha(0) end
 			overlay.icon = overlay:CreateTexture(nil, "OVERLAY")
 			overlay.icon:SetAllPoints()
 			overlay.badge = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1616,57 +2179,19 @@ local function BuildOverlays()
 	end
 end
 
-local function VisibleRole(icon)
- return icon and icon:IsShown() and icon:GetAlpha() > 0
-end
-local function AssignedRole(unit)
- if not UnitGroupRolesAssigned then return end
- local tank, healer, damage = UnitGroupRolesAssigned(unit)
- if type(tank) == "string" then
-  return ({TANK="tank", HEALER="heal", DAMAGER="dps"})[tank]
- end
- if tank == true or tank == 1 then return "tank" end
- if healer == true or healer == 1 then return "heal" end
- if damage == true or damage == 1 then return "dps" end
-end
-local function SyncUFIOverlay(overlay)
- local frame = overlay:GetParent()
- local portrait = frame and (frame.portrait or _G[frame:GetName() .. "Portrait"])
- local nativeRole = frame and (frame.roleIcon or _G[frame:GetName() .. "RoleIcon"])
- local settings = characterSettings
- local wide = portrait and settings and settings.EnableParty ~= false
-  and settings.PartyWide ~= false and frame._ufiPartyBorder and frame._ufiPartyBorder:IsShown()
- local sharedRole
- if VisibleRole(frame and frame._ufiRole) then
-  sharedRole = frame._ufiRole
- else
-  sharedRole = nativeRole
- end
- local visible = VisibleRole(sharedRole)
- local anchor = visible and sharedRole or portrait or false
- if overlay._ufiAnchor ~= anchor then
-  overlay:ClearAllPoints()
-  if visible then
-   overlay:SetPoint("CENTER", sharedRole, "CENTER", 0, 0)
-  elseif portrait then
-   overlay:SetPoint("BOTTOMLEFT", portrait, "BOTTOMLEFT", -2, -2)
-  else
-   overlay:SetPoint("TOPLEFT", frame, "TOPLEFT", -4, 4)
-  end
-  overlay._ufiAnchor = anchor
- end
- return visible
-end
-
 local function RefreshOverlays()
 	local now = GetTime()
 	for _, overlay in pairs(overlays) do
-        local integrated = SyncUFIOverlay(overlay)
 		local name = UnitName(overlay.unit)
 		if name then
 			overlay:Show()
-            if integrated then overlay.icon:Hide()
-            else SetRoleIcon(overlay.icon, AssignedRole(overlay.unit) or roleByName[name] or "none") end
+			local role = LfgRole(overlay.unit) or roleByName[name]
+			SetRoleIcon(overlay.icon, role or "none")
+			if not role then
+				overlay.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+				overlay.icon:SetTexCoord(0, 1, 0, 1)
+				overlay.icon:Show()
+			end
 			local info = specsByName[name]
 			overlay.spec:SetText(info and info.current or "")
 			local badge = badges[name]
@@ -1687,22 +2212,27 @@ end
 -- they are looked for every few seconds and the unit is read from the frame at each refresh. Our icons
 -- belong to UIParent and are only anchored to those secure frames, which keeps them out of combat locks.
 -- Looking through every frame costs: every 10 seconds in a group, and half a second after the group changes.
-local compactOverlays, compactScanAt, compactGroupSize = {}, 0, -1
-local COMPACT_SCAN, COMPACT_RESCAN = 10, 0.5
+local compact = { overlays = {}, scanAt = 0, groupSize = -1, SCAN = 10, RESCAN = 0.5 }
 
-local function CompactUnit(frame)
+function compact.Unit(frame)
 	local unit = frame.displayedUnit or frame.unit
 	if type(unit) ~= "string" and frame.GetAttribute then unit = frame:GetAttribute("unit") end
 	return type(unit) == "string" and unit or nil
 end
 
-local function IsCompactFrame(frame)
+function compact.IsFrame(frame)
 	-- A CompactUnitFrame: a unit and a "healthBar" (the old party and target frames have "healthbar"). Ascension's
 	-- CompactRaidFrameN have no "name" field.
-	return frame.healthBar and CompactUnit(frame)
+	-- A nameplate carries a healthBar and a unit of its own ("nameplate1"): only the frames of the group are ours,
+	-- and a nameplate's strata reads back as "UNKNOWN", which SetFrameStrata then refuses.
+	local unit = frame.healthBar and compact.Unit(frame)
+	if not unit or not (unit == "player" or string.find(unit, "^party%d") or string.find(unit, "^raid%d")) then
+		return nil
+	end
+	return unit
 end
 
-local function CompactOverlay(frame)
+function compact.Overlay(frame)
 	local overlay = CreateFrame("Button", nil, UIParent)
 	overlay:SetWidth(14)
 	overlay:SetHeight(14)
@@ -1717,46 +2247,49 @@ local function CompactOverlay(frame)
 	overlay:SetScript("OnEnter", OverlayTooltip)
 	overlay:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	overlay.frame = frame
-	compactOverlays[frame] = overlay
+	compact.overlays[frame] = overlay
 	return overlay
 end
 
-local function ScanCompactFrames()
+function compact.Scan()
 	local frame = EnumerateFrames()
 	while frame do
-		if not compactOverlays[frame] and IsCompactFrame(frame) then CompactOverlay(frame) end
+		if not compact.overlays[frame] and compact.IsFrame(frame) then compact.Overlay(frame) end
 		frame = EnumerateFrames(frame)
 	end
 end
 
-local function RefreshCompactOverlays()
+function compact.Refresh()
 	if SquidBotsLiteDB.raidFrames == false then
-		for _, overlay in pairs(compactOverlays) do overlay:Hide() end
+		for _, overlay in pairs(compact.overlays) do overlay:Hide() end
 		return
 	end
 	local now = GetTime()
 	local size = GetNumRaidMembers() + GetNumPartyMembers()
-	if size ~= compactGroupSize then
-		compactGroupSize = size
-		compactScanAt = math.min(compactScanAt, now + COMPACT_RESCAN)
+	if size ~= compact.groupSize then
+		compact.groupSize = size
+		compact.scanAt = math.min(compact.scanAt, now + compact.RESCAN)
 	end
-	if size > 0 and now >= compactScanAt then
-		compactScanAt = now + COMPACT_SCAN
+	if size > 0 and now >= compact.scanAt then
+		compact.scanAt = now + compact.SCAN
 		if _G.CompactUnitMixin or IsAddOnLoaded("Ascension_CompactRaidFrames") or IsAddOnLoaded("CompactRaidFrame")
 			or _G.CompactRaidFrameContainer then
-			ScanCompactFrames()
+			compact.Scan()
 		end
 	end
-	for frame, overlay in pairs(compactOverlays) do
-		local unit = frame:IsVisible() and CompactUnit(frame)
+	for frame, overlay in pairs(compact.overlays) do
+		local unit = frame:IsVisible() and compact.Unit(frame)
 		local name = unit and not UnitIsUnit(unit, "player") and UnitName(unit)
 		if name then
 			overlay.unit = unit
-			overlay:SetFrameStrata(frame:GetFrameStrata())
+			-- A frame can report a strata SetFrameStrata does not take back ("UNKNOWN"): keep the one we have.
+			local strata = frame:GetFrameStrata()
+			if strata and strata ~= "UNKNOWN" then overlay:SetFrameStrata(strata) end
 			overlay:SetFrameLevel(frame:GetFrameLevel() + 10)
 			if frame.roleIcon then frame.roleIcon:SetAlpha(0) end
-			SetRoleIcon(overlay.icon, roleByName[name] or "none")
-			if not roleByName[name] then
+			local role = LfgRole(overlay.unit) or roleByName[name]
+			SetRoleIcon(overlay.icon, role or "none")
+			if not role then
 				overlay.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
 				overlay.icon:SetTexCoord(0, 1, 0, 1)
 				overlay.icon:Show()
@@ -1840,7 +2373,7 @@ local function RefreshToasts()
 		if offer then
 			toast.offerName = offer.name
 			toast.text:SetText(offer.name)
-			toast.info:SetText("|cffaaaaaa" .. ClassDisplayName(offer.class) .. " " .. offer.level .. "|r")
+			toast.info:SetText("|cffaaaaaa" .. SquidBotsLite_ClassDisplayName(offer.class) .. " " .. offer.level .. "|r")
 			SetRoleIcon(toast.role, offer.role)
 			toast:Show()
 		else
@@ -1853,8 +2386,9 @@ end
 -- ---------------------------------------------------------------------------
 -- My alts: the player's other characters, logged in as bots
 -- ---------------------------------------------------------------------------
-local ALT_ROWS = 10
-local ALT_ROW_H = 36
+local ALT_ROWS = 8
+local ALT_ROW_H = 50
+local ALT_TOP = 74
 -- "Bot list" names the alts only; their level and class are noted whenever they are seen (played, or in the
 -- group) and kept account-wide in SquidBotsLiteDB.altInfo.
 local SHEET_ICON = "Interface\\Icons\\Achievement_Character_Human_Male"
@@ -1873,6 +2407,17 @@ local function AskRoster()
 	altsFrame.status:SetText(L.ALTS_WAIT)
 	BotCommand("list")
 end
+-- For Missions.lua: ask the roster again, and the alts logged in as bots now.
+SquidBotsLite_AskRoster = function()
+	if altsFrame and not (rosterAskedAt and GetTime() - rosterAskedAt < ROSTER_WAIT) then AskRoster() end
+end
+function SquidBotsLite_OnlineAlts()
+	local list = {}
+	for _, alt in ipairs(roster) do
+		if alt.online and SquidBotsLiteDB.alts and SquidBotsLiteDB.alts[alt.name] then table.insert(list, alt.name) end
+	end
+	return list
+end
 
 -- "Bot roster: +Aria Dawn , -Brom Warrior": + logged in as a bot, - offline. The server names the class only
 -- for the WotLK classes (blank for a CoA class), and a CoA name may hold a space. The random bots of the
@@ -1881,6 +2426,10 @@ local function ParseRoster(text)
 	local list, inParty, seen = {}, {}, {}
 	for i = 1, 4 do
 		local name = UnitName("party" .. i)
+		if name then inParty[name] = true end
+	end
+	for i = 1, GetNumRaidMembers() do
+		local name = UnitName("raid" .. i)
 		if name then inParty[name] = true end
 	end
 	SquidBotsLiteDB.alts = SquidBotsLiteDB.alts or {}
@@ -1960,10 +2509,10 @@ local function AltLine(name)
 	local info = SquidBotsLiteDB.altInfo and SquidBotsLiteDB.altInfo[name]
 	if not info or not info.level then return "|cff808080" .. L.ALTS_UNKNOWN .. "|r" end
 	local color = info.token and RAID_CLASS_COLORS and RAID_CLASS_COLORS[info.token]
-	local class = ClassDisplayName(info.class) or ""
+	local class = SquidBotsLite_ClassDisplayName(info.class) or ""
 	if color then class = string.format("|cff%02x%02x%02x%s|r", color.r * 255, color.g * 255, color.b * 255, class) end
 	local line = string.format(L.ALTS_LEVEL, info.level, class)
-	if info.spec then line = line .. " |cffaaaaaa- " .. info.spec .. "|r"
+	if info.spec then line = line .. " |cffaaaaaa- " .. SpecDisplayName(info.spec) .. "|r"
 	elseif info.noSpec and (info.level or 0) >= 10 then line = line .. " |cffff9933- " .. L.ALTS_NO_SPEC .. "|r" end
 	return line
 end
@@ -2012,21 +2561,42 @@ local function RefreshAlts()
 	if not altsFrame then return end
 	NoteGroup()
 	-- 25 alts for a raid: the list scrolls (wheel or bar), ALT_ROWS at a time.
-	altsFrame:SetHeight(138 + math.max(3, math.min(#roster, ALT_ROWS)) * ALT_ROW_H)
+	altsFrame:SetHeight(ALT_TOP + math.max(1, math.min(#roster, ALT_ROWS)) * ALT_ROW_H + 44)
 	FauxScrollFrame_Update(altsFrame.scroll, #roster, ALT_ROWS, ALT_ROW_H)
 	local offset = FauxScrollFrame_GetOffset(altsFrame.scroll)
+	local online = 0
+	for _, alt in ipairs(roster) do if alt.online then online = online + 1 end end
+	altsFrame.count:SetText(#roster > 0 and string.format(L.ALTS_COUNT, online, #roster) or "")
 	for i, row in ipairs(altRows) do
 		local alt = roster[i + offset]
 		row.alt = alt
 		if alt then
-			row.name:SetText(alt.linked and (alt.name .. " |cff8888aa(" .. L.ALTS_LINKED .. ")|r") or alt.name)
-			row.info:SetText(AltLine(alt.name))
+			-- Logging in or out (2.9.4): shown at once as it will be, the toggle off until the server says so.
+			local online = alt.online
+			if alt.pending then online = alt.pending == "in" end
+			local name = online and ui.ClassName(alt.name) or ("|cff9d9d9d" .. alt.name .. "|r")
+			row.name:SetText(alt.linked and (name .. " |cff8888aa(" .. L.ALTS_LINKED .. ")|r") or name)
+			-- Level, class, spec; its gathering skill as an icon, and a gold word while it is out on a mission.
+			local line = AltLine(alt.name)
+			local skill = SquidBotsLiteDB.missionSkill and SquidBotsLiteDB.missionSkill[alt.name]
+			if skill and ui.SKILL_ICON[skill] then line = line .. "  |T" .. ui.SKILL_ICON[skill] .. ":12:12|t" end
+			local mission = SquidBotsLite_MissionOf and SquidBotsLite_MissionOf(alt.name)
+			if mission then
+				line = line .. "  |cffffd100" .. string.format(L.ALTS_MISSION, mission.minutes, mission.items) .. "|r"
+			end
+			if alt.pending then line = line .. "  |cffffd100" .. (alt.pending == "in" and L.ALTS_IN or L.ALTS_OUT) .. "|r" end
+			row.info:SetText(line)
 			ShowXP(row.xp, alt.name)
-			row.dot:SetVertexColor(alt.online and 0.2 or 0.45, alt.online and 1 or 0.45, alt.online and 0.2 or 0.45)
-			row.toggle:SetText(alt.online and L.ALTS_REMOVE or L.ALTS_ADD)
-			row.toggle:Enable()
-			if alt.online then row.summon:Show() else row.summon:Hide() end
-			if alt.online and SquidBotsLite_OpenSheet then row.sheet:Show() else row.sheet:Hide() end
+			ui.ClassIcon(row.icon, alt.name)
+			row.icon:SetDesaturated(not online)
+			row.icon:SetAlpha(online and 1 or 0.55)
+			row.dot:SetTexture(alt.pending and "Interface\\FriendsFrame\\StatusIcon-Away"
+				or online and "Interface\\FriendsFrame\\StatusIcon-Online" or "Interface\\FriendsFrame\\StatusIcon-Offline")
+			row:SetBackdropColor(online and 0.10 or 0.07, online and 0.10 or 0.07, online and 0.12 or 0.08, 0.95)
+			ui.SetIcon(row.toggle, online and "Interface\\Icons\\Spell_ChargeNegative" or "Interface\\Icons\\Spell_ChargePositive",
+				not alt.pending)
+			if alt.online and not alt.pending then row.summon:Show() else row.summon:Hide() end
+			if alt.online and not alt.pending and SquidBotsLite_OpenSheet then row.sheet:Show() else row.sheet:Hide() end
 			row:Show()
 		else
 			row:Hide()
@@ -2042,14 +2612,10 @@ end
 local function AltsTexts()
 	if not altsFrame then return end
 	altsFrame.title:SetText("SquidBots Lite - " .. L.ALTS)
-	altsFrame.refresh:SetText(L.ALTS_REFRESH)
 	altsFrame.teams:SetText(L.TEAMS)
-	altsFrame.accounts:SetText(L.ACCOUNTS)
+	altsFrame.dashboard:SetText(L.DASHBOARD)
+	altsFrame.missions:SetText(L.MISSIONS)
 	altsFrame.help:SetText(L.ALTS_HELP)
-	for _, row in ipairs(altRows) do
-		row.summon:SetText(L.ALTS_SUMMON)
-		row.sheet:SetText("   " .. L.ALTS_SHEET)
-	end
 end
 
 -- Teams: named lists of characters kept account-wide (SquidBotsLiteDB.teams), logged in one a second with the same
@@ -2218,11 +2784,11 @@ end
 
 local function BuildAlts()
 	altsFrame = CreateFrame("Frame", "SquidBotsLiteAlts", UIParent)
-	altsFrame:SetWidth(452)
-	altsFrame:SetHeight(138 + ALT_ROWS * ALT_ROW_H)
+	altsFrame:SetWidth(548)
+	altsFrame:SetHeight(ALT_TOP + ALT_ROWS * ALT_ROW_H + 44)
 	altsFrame:SetPoint("CENTER")
 	altsFrame:SetBackdrop(PANEL_BACKDROP)
-	altsFrame:SetBackdropColor(0.04, 0.04, 0.05, 1)
+	altsFrame:SetBackdropColor(0.04, 0.04, 0.05, 0.96)
 	altsFrame:SetFrameStrata("DIALOG")
 	altsFrame:SetMovable(true)
 	altsFrame:SetToplevel(true)
@@ -2238,49 +2804,62 @@ local function BuildAlts()
 	altsFrame.title:SetPoint("TOP", 0, -14)
 	local close = CreateFrame("Button", nil, altsFrame, "UIPanelCloseButton")
 	close:SetPoint("TOPRIGHT", -4, -4)
-	altsFrame.refresh = CreateFrame("Button", nil, altsFrame, "UIPanelButtonTemplate")
-	altsFrame.refresh:SetWidth(90)
-	altsFrame.refresh:SetHeight(20)
-	altsFrame.refresh:SetPoint("TOPLEFT", 16, -36)
-	altsFrame.refresh:SetScript("OnClick", function() AskRoster() end)
-	altsFrame.teams = CreateFrame("Button", nil, altsFrame, "UIPanelButtonTemplate")
-	altsFrame.teams:SetWidth(90)
-	altsFrame.teams:SetHeight(20)
-	altsFrame.teams:SetPoint("LEFT", altsFrame.refresh, "RIGHT", 6, 0)
-	altsFrame.teams:SetScript("OnClick", TeamsMenu)
-	altsFrame.accounts = CreateFrame("Button", nil, altsFrame, "UIPanelButtonTemplate")
-	altsFrame.accounts:SetWidth(90)
-	altsFrame.accounts:SetHeight(20)
-	altsFrame.accounts:SetPoint("LEFT", altsFrame.teams, "RIGHT", 6, 0)
-	altsFrame.accounts:SetScript("OnClick", AccountsMenu)
-	altsFrame.status = altsFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	altsFrame.status:SetPoint("TOPLEFT", 18, -62)
-	altsFrame.status:SetWidth(390)
-	altsFrame.status:SetJustifyH("LEFT")
+	-- The menus on the left, the count of alts logged in and Refresh on the right.
+	local x = 16
+	-- The Alts Dashboard first, then the missions and the teams; the accounts are an icon after the others (Alts.lua).
+	SquidBotsLite_AccountsMenu = AccountsMenu
+	for _, def in ipairs({ { "dashboard", function() if SquidBotsLite_ShowDashboard then SquidBotsLite_ShowDashboard() end end },
+		-- Missions.lua: send a logged-in alt gathering on its own.
+		{ "missions", function() if SquidBotsLite_ShowMissions then SquidBotsLite_ShowMissions() end end },
+		{ "teams", TeamsMenu } }) do
+		local button = CreateFrame("Button", nil, altsFrame, "UIPanelButtonTemplate")
+		button:SetWidth(84)
+		button:SetHeight(22)
+		button:SetPoint("TOPLEFT", x, -36)
+		button:SetScript("OnClick", def[2])
+		altsFrame[def[1]] = button
+		x = x + 88
+	end
+	-- Alts.lua: the alts' quests and trainers panel and their log, two icons after the menus.
+	if SquidBotsLite_AltsButtons then SquidBotsLite_AltsButtons(altsFrame, x) end
+	altsFrame.refresh = ui.IconButton(altsFrame, 22, "Interface\\Buttons\\UI-RefreshButton",
+		function() return L.ALTS_REFRESH, L.TIP_ALTS_REFRESH end, function() AskRoster() end)
+	altsFrame.refresh.icon:SetTexCoord(0, 1, 0, 1)
+	altsFrame.refresh:SetPoint("TOPRIGHT", -18, -36)
+	altsFrame.count = altsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	altsFrame.count:SetPoint("RIGHT", altsFrame.refresh, "LEFT", -8, 0)
+	ui.Rule(altsFrame, -66)
+	altsFrame.status = altsFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	altsFrame.status:SetPoint("TOPLEFT", 20, -ALT_TOP - 8)
+	altsFrame.status:SetWidth(450)
 	altsFrame.status:SetJustifyH("LEFT")
 	for i = 1, ALT_ROWS do
 		local row = CreateFrame("Frame", nil, altsFrame)
-		row:SetWidth(398)
-		row:SetHeight(ALT_ROW_H - 2)
-		row:SetPoint("TOPLEFT", 16, -80 - (i - 1) * ALT_ROW_H)
-		row.dot = row:CreateTexture(nil, "ARTWORK")
-		row.dot:SetTexture("Interface\\Buttons\\WHITE8X8")
-		row.dot:SetWidth(8)
-		row.dot:SetHeight(8)
-		row.dot:SetPoint("LEFT", 2, 0)
-		row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		row.name:SetPoint("TOPLEFT", 16, -3)
-		row.name:SetWidth(166)
+		row:SetWidth(492)
+		row:SetHeight(ALT_ROW_H - 4)
+		row:SetPoint("TOPLEFT", 16, -ALT_TOP - (i - 1) * ALT_ROW_H)
+		-- Its portrait or class icon, with the friends list's dot: green logged in, grey offline.
+		row.icon = row:CreateTexture(nil, "ARTWORK")
+		row.icon:SetWidth(34)
+		row.icon:SetHeight(34)
+		row.icon:SetPoint("LEFT", 6, 0)
+		row.dot = row:CreateTexture(nil, "OVERLAY")
+		row.dot:SetWidth(14)
+		row.dot:SetHeight(14)
+		row.dot:SetPoint("BOTTOMRIGHT", row.icon, "BOTTOMRIGHT", 4, -3)
+		row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		row.name:SetPoint("TOPLEFT", 50, -6)
+		row.name:SetWidth(250)
 		row.name:SetJustifyH("LEFT")
 		row.info = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-		row.info:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
-		row.info:SetWidth(168)
+		row.info:SetPoint("TOPLEFT", 50, -22)
+		row.info:SetWidth(260)
 		row.info:SetHeight(12)
 		row.info:SetJustifyH("LEFT")
 		row.xp = CreateFrame("StatusBar", nil, row)
-		row.xp:SetWidth(150)
-		row.xp:SetHeight(4)
-		row.xp:SetPoint("TOPLEFT", row.info, "BOTTOMLEFT", 0, -2)
+		row.xp:SetWidth(180)
+		row.xp:SetHeight(3)
+		row.xp:SetPoint("TOPLEFT", 50, -37)
 		row.xp:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 		row.xp:SetStatusBarColor(0.58, 0.0, 0.55)
 		row.xp:SetMinMaxValues(0, 100)
@@ -2291,65 +2870,51 @@ local function BuildAlts()
 		row.xp.rest = row.xp:CreateTexture(nil, "ARTWORK")
 		row.xp.rest:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
 		row.xp.rest:SetVertexColor(0.0, 0.39, 0.88, 0.6)
-		row.xp.rest:SetHeight(4)
+		row.xp.rest:SetHeight(3)
 		row.xp.rest:SetPoint("LEFT", row.xp:GetStatusBarTexture(), "RIGHT", 0, 0)
 		row.xp:Hide()
-		row.toggle = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-		row.toggle:SetWidth(76)
-		row.toggle:SetHeight(18)
-		row.toggle:SetPoint("LEFT", 186, 0)
-		row.toggle:SetScript("OnClick", function(self)
+		-- On the right, from the edge: log in / out, then Summon and the bot sheet while it is logged in.
+		row.toggle = ui.IconButton(row, 26, "Interface\\Icons\\Spell_ChargePositive", function(self)
+			local alt = self:GetParent().alt
+			if alt and alt.online then return L.ALTS_REMOVE, L.TIP_ALT_REMOVE end
+			return L.ALTS_ADD, L.TIP_ALT_ADD
+		end, function(self)
 			local alt = self:GetParent().alt
 			if not alt then return end
 			BotCommand((alt.online and "remove " or "add ") .. alt.name)
-			self:Disable()
-			refreshAt = GetTime() + AFTER_TOGGLE
+			alt.pending, alt.pendingAt = alt.online and "out" or "in", GetTime()
+			-- Only a safety net: the "- ok" line or the group's change asks the list again at once.
+			refreshAt = GetTime() + AFTER_TOGGLE + 5
+			RefreshAlts()
 		end)
+		row.toggle:SetPoint("RIGHT", -10, 0)
 		-- An alt logs in where it logged out: Summon brings it over.
-		row.summon = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-		row.summon:SetWidth(60)
-		row.summon:SetHeight(18)
-		row.summon:SetPoint("LEFT", row.toggle, "RIGHT", 4, 0)
-		row.summon:SetScript("OnClick", function(self)
+		row.summon = ui.IconButton(row, 26, "Interface\\Icons\\Spell_Shadow_Twilight",
+			function() return L.ALTS_SUMMON, L.TIP_ALT_SUMMON end, function(self)
 			local alt = self:GetParent().alt
 			if alt then Whisper(alt.name, "summon") end
 		end)
-		row.sheet = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-		row.sheet:SetWidth(76)
-		row.sheet:SetHeight(18)
-		row.sheet:SetPoint("LEFT", row.summon, "RIGHT", 4, 0)
-		row.sheet.icon = row.sheet:CreateTexture(nil, "OVERLAY")
-		row.sheet.icon:SetWidth(14)
-		row.sheet.icon:SetHeight(14)
-		row.sheet.icon:SetPoint("LEFT", 6, 0)
-		row.sheet.icon:SetTexture(SHEET_ICON)
-		row.sheet.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-		-- A gold glow that breathes until the player has opened a sheet once: the feature is new.
-		row.sheet.glow = row.sheet:CreateTexture(nil, "BACKGROUND")
-		row.sheet.glow:SetTexture("Interface\\Buttons\\UI-Panel-Button-Glow")
-		row.sheet.glow:SetTexCoord(0, 0.75, 0, 0.609375)
-		row.sheet.glow:SetBlendMode("ADD")
-		row.sheet.glow:SetPoint("TOPLEFT", -10, 8)
-		row.sheet.glow:SetPoint("BOTTOMRIGHT", 10, -8)
-		row.sheet:SetScript("OnUpdate", function(self)
-			if SquidBotsLiteDB.sheetOpened then self.glow:Hide() return end
-			self.glow:SetAlpha(0.35 + 0.35 * math.sin(GetTime() * 4))
-		end)
-		row.sheet:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-			GameTooltip:SetText(L.ALTS_SHEET)
-			GameTooltip:AddLine(L.TIP_SHEET, 1, 1, 1, true)
-			GameTooltip:Show()
-		end)
-		row.sheet:SetScript("OnLeave", function() GameTooltip:Hide() end)
-		row.sheet:SetScript("OnClick", function(self)
+		row.summon:SetPoint("RIGHT", row.toggle, "LEFT", -6, 0)
+		row.sheet = ui.IconButton(row, 26, SHEET_ICON, function() return L.ALTS_SHEET, L.TIP_SHEET end, function(self)
 			local alt = self:GetParent().alt
 			if alt and SquidBotsLite_OpenSheet then
 				SquidBotsLiteDB.sheetOpened = true
 				SquidBotsLite_OpenSheet(alt.name)
 			end
 		end)
-		-- A logged-in alt's name opens its bot sheet (Manager.lua, beta).
+		row.sheet:SetPoint("RIGHT", row.summon, "LEFT", -6, 0)
+		-- A gold glow that breathes until the player has opened a sheet once: the feature is new.
+		row.sheet.glow = row.sheet:CreateTexture(nil, "OVERLAY")
+		row.sheet.glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+		row.sheet.glow:SetBlendMode("ADD")
+		row.sheet.glow:SetWidth(50)
+		row.sheet.glow:SetHeight(50)
+		row.sheet.glow:SetPoint("CENTER")
+		row.sheet:SetScript("OnUpdate", function(self)
+			if SquidBotsLiteDB.sheetOpened then self.glow:Hide() return end
+			self.glow:SetAlpha(0.35 + 0.35 * math.sin(GetTime() * 4))
+		end)
+		-- A logged-in alt's card opens its bot sheet (Manager.lua, beta).
 		row:EnableMouse(true)
 		row:SetScript("OnEnter", function(self)
 			local alt = self.alt
@@ -2372,12 +2937,14 @@ local function BuildAlts()
 				SquidBotsLite_OpenSheet(self.alt.name)
 			end
 		end)
+		-- After its own scripts: the card's border lights up under the mouse.
+		ui.Card(row)
 		row:Hide()
 		altRows[i] = row
 	end
 	altsFrame.scroll = CreateFrame("ScrollFrame", "SquidBotsLiteAltsScroll", altsFrame, "FauxScrollFrameTemplate")
-	altsFrame.scroll:SetPoint("TOPLEFT", 16, -80)
-	altsFrame.scroll:SetPoint("BOTTOMRIGHT", -32, 60)
+	altsFrame.scroll:SetPoint("TOPLEFT", 16, -ALT_TOP)
+	altsFrame.scroll:SetPoint("BOTTOMRIGHT", -36, 44)
 	altsFrame.scroll:SetScript("OnVerticalScroll", function(self, offset)
 		FauxScrollFrame_OnVerticalScroll(self, offset, ALT_ROW_H, RefreshAlts)
 	end)
@@ -2390,15 +2957,23 @@ local function BuildAlts()
 			bar:SetValue(bar:GetValue() - delta * ALT_ROW_H)
 		end)
 	end
+	altsFrame.footer = altsFrame:CreateTexture(nil, "ARTWORK")
+	altsFrame.footer:SetTexture("Interface\\Buttons\\WHITE8X8")
+	altsFrame.footer:SetVertexColor(1, 0.82, 0, 0.18)
+	altsFrame.footer:SetHeight(1)
+	altsFrame.footer:SetPoint("BOTTOMLEFT", 16, 34)
+	altsFrame.footer:SetPoint("BOTTOMRIGHT", -16, 34)
 	altsFrame.help = altsFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-	altsFrame.help:SetPoint("BOTTOMLEFT", 16, 14)
-	altsFrame.help:SetWidth(398)
+	altsFrame.help:SetPoint("BOTTOMLEFT", 18, 16)
+	altsFrame.help:SetWidth(430)
 	altsFrame.help:SetJustifyH("LEFT")
+	ui.FlattenAll(altsFrame)
 	altsFrame:Hide()
 	AltsTexts()
 end
 
 ShowAlts = function()
+	if SquidBotsLiteDashboard and SquidBotsLiteDashboard:IsShown() then SquidBotsLiteDashboard:Hide() end
 	altsFrame:Show()
 	AskRoster()
 end
@@ -2406,10 +2981,24 @@ end
 -- Called with the other refreshes: a new list after a log in / out, a word if the server stays silent.
 local readingLinks
 
+-- The roster's row of an alt; a log in / out confirmed or refused by the server (also ONLINE / OFFLINE, Alts.lua).
+local function SetAltOnline(name, online)
+	for _, alt in ipairs(roster) do
+		if alt.name == name then
+			if online ~= nil then alt.online = online end
+			alt.pending = nil
+		end
+	end
+	-- Several alts logging in one after the other: one list at the end of the queue (TickLogins), not one each.
+	refreshAt = GetTime() + (#loginQueue > 0 and AFTER_TOGGLE or 0.5)
+	RefreshAlts()
+end
+SquidBotsLite_AltOnline = function(name, online) if altsFrame then SetAltOnline(name, online) end end
+
 local function TickAlts()
 	TickLogins()
-	if not altsFrame:IsShown() then return end
 	local now = GetTime()
+	-- Runs with the panel closed too: Missions and the dashboard ask the list without it.
 	if refreshAt and now >= refreshAt then
 		AskRoster()
 	elseif rosterAskedAt and now - rosterAskedAt > ROSTER_WAIT then
@@ -2423,6 +3012,15 @@ local function OnSystem(message)
 	-- "add: Name - ok" / "addaccount: Name - ok": a character logged in by the player is one of their alts, also
 	-- those of a linked account, which "bot list" alone never shows offline.
 	local added = message:match("^add%a*: (.-) %- ok$")
+	local removed = message:match("^remove: (.-) %- ok$")
+	if added or removed then SetAltOnline(added or removed, added and true or false) end
+	-- "add: Name - <reason>" or a "Failure: ..." line: the row goes back to what it was.
+	local refused = message:match("^add%a*: (.-) %- ") or message:match("^remove: (.-) %- ")
+	if refused and not added and not removed then SetAltOnline(refused, nil) end
+	if message:find("^Failure") then
+		for _, alt in ipairs(roster) do alt.pending = nil end
+		RefreshAlts()
+	end
 	if added then
 		SquidBotsLiteDB.alts = SquidBotsLiteDB.alts or {}
 		SquidBotsLiteDB.alts[added] = true
@@ -2446,6 +3044,7 @@ local function OnSystem(message)
 		roster = ParseRoster(text)
 		RefreshAlts()
 		AskAltStats()
+		if SquidBotsLite_MissionsRoster then SquidBotsLite_MissionsRoster() end
 		return true
 	end
 end
@@ -2531,9 +3130,22 @@ local function OnWhisper(message, sender)
 	end
 	local level = message:match("[Ll]evel (%d+)")
 	if not level then return end
-	local class
+	local class, token
 	for _, name in ipairs(CLASSES) do
 		if message:find(name, 1, true) then class = name break end
+	end
+	-- A Warcraft Reborn bot offers a WotLK class (after the CoA names: "Witch Hunter" is not a Hunter).
+	if not class then
+		for _, wotlk in ipairs(WCR_CLASSES) do
+			if message:find(wotlk[1], 1, true) then
+				class, token = SquidBotsLiteDB.lang == "fr" and wotlk[3] or wotlk[1], wotlk[2]
+				break
+			end
+		end
+	end
+	-- A Wildcard Hero offers itself as "Hero" (class 10), in no class list above.
+	if not class and message:find("Hero", 1, true) then
+		class = SquidBotsLiteDB.lang == "fr" and "Héros" or (SquidBotsLiteDB.lang == "zh" and "英雄" or "Hero")
 	end
 	local lower = string.lower(message)
 	if not class or not (lower:find("invite") or lower:find("service") or lower:find("ready") or lower:find("available") or lower:find("looking")) then
@@ -2541,7 +3153,14 @@ local function OnWhisper(message, sender)
 	end
 	-- "I'll keep your tank alive" is a healer talking: the healer words win.
 	local role = (lower:find("heal") or lower:find("keep your tank alive")) and "heal"
-		or (lower:find("tank") and "tank" or "dps")
+		or (lower:find("tank") and "tank")
+	-- No role word: the tree it names says it ("Restoration", "Protection").
+	if not role and token then
+		for _, tree in ipairs(WCR_SPECS[token]) do
+			if message:find(tree[1], 1, true) then role = tree[3] break end
+		end
+	end
+	role = role or "dps"
 	roleByName[sender] = role
 	knownBot[sender] = true
 	for i = #toasts, 1, -1 do
@@ -2619,6 +3238,510 @@ versionWatch:SetScript("OnEvent", function(self, _, message)
 	end
 end)
 
+-- The tank sends every player of its group "DC" addon messages (STATUS, CHAT); nothing is sent to read them. STATUS fields:
+-- 1 "STATUS", 2 enabled, 3 boss entry, 4 next boss, 5 stall reason, 6 skipped, 7 state, 8 detail (English),
+-- 9 pull setting (0 Leeroy, 1 Advanced, 2 Dynamic), 10 Dynamic's choice for the current pack.
+function dc.OnAddon(message)
+	local parts, start = {}, 1
+	while true do
+		local tab = message:find("\t", start, true)
+		table.insert(parts, message:sub(start, (tab or 0) - 1))
+		if not tab then break end
+		start = tab + 1
+	end
+	-- "CHAT": the tank's lines for the player (why the clear stopped or paused, a door, a stall, "pulling X"),
+	-- sent only on the addon channel, so without this they would never show.
+	if parts[1] == "CHAT" then
+		local text = message:match("^CHAT\t(.*)$")
+		-- "Dungeon clear is not enabled for Heroic dungeons on this realm.": the tank already says it in the chat.
+		if text and text:find("^Dungeon clear is not enabled for") then return end
+		if text and text ~= "" then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccff[" .. L.DC_LINE .. "]|r " .. text) end
+		return
+	end
+	-- The boss list: BOSS_START, one "BOSS" per boss or scripted event, BOSS_END (sent on ".dc bosses", and again
+	-- by the tank whenever a boss changes). BOSS fields: 2 entry, 3 order, 4 name, 5 alive|dead|skipped|missing.
+	if parts[1] == "BOSS_START" then
+		dc.pending = {}
+		return
+	elseif parts[1] == "BOSS" then
+		dc.pending = dc.pending or {}
+		table.insert(dc.pending, { entry = parts[2], order = tonumber(parts[3] or "") or 99, name = parts[4] or "?",
+			status = parts[5] or "", event = (parts[4] or ""):find("^Event: ") ~= nil })
+		return
+	elseif parts[1] == "BOSS_END" then
+		dc.bosses = dc.pending or {}
+		dc.pending = nil
+		table.sort(dc.bosses, function(a, b) return a.order < b.order end)
+		dc.RefreshPanel()
+		if SquidBotsLite_MainTankRefresh then SquidBotsLite_MainTankRefresh() end
+		return
+	end
+	if parts[1] ~= "STATUS" then return end
+	if dc.module ~= "on" then dc.module, dc.waitUntil = "on", nil end
+	dc.pull = tonumber(parts[9] or "")
+	local wasRunning = dc.enabled
+	dc.enabled, dc.state, dc.detail, dc.stall = parts[2] == "1", parts[7] or "", parts[8] or "", parts[5] or ""
+	-- A clear that starts (whoever started it) turns Main tank off: the two never run together.
+	if dc.enabled and not wasRunning and SquidBotsLite_MainTankOffForDc then SquidBotsLite_MainTankOffForDc() end
+	dc.nextBoss = parts[4] ~= "None" and parts[4] or nil
+	Highlight()
+	if not dc.line then
+		dc.line = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		dc.line:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 2, -2)
+		dc.line:SetJustifyH("LEFT")
+	end
+	local state, detail, stall = parts[7] or "", parts[8] or "", parts[5] or ""
+	local text
+	if parts[2] ~= "1" then
+		text = L.DC_STOPPED
+		dc.hideAt = GetTime() + dc.LINE_KEEP
+	else
+		text = detail ~= "" and detail or state
+		if state == "paused" then text = L.DC_PAUSED .. (detail ~= "" and (" - " .. detail) or "") end
+		if stall ~= "" then text = text .. " |cffff5555(" .. stall .. ")|r" end
+		dc.hideAt = nil
+	end
+	dc.line:SetText("|cff66ccff" .. L.DC_LINE .. ":|r " .. text)
+	dc.line:Show()
+	dc.RefreshPanel()
+	if SquidBotsLite_MainTankRefresh then SquidBotsLite_MainTankRefresh() end
+end
+
+-- ---------------------------------------------------------------------------
+-- Dungeon clear panel: the run's state, its buttons, the bosses with Go
+-- ---------------------------------------------------------------------------
+dc.ROWS, dc.ROW_H, dc.ROWS_TOP = 16, 20, 208
+dc.STATUS_COLORS = { alive = { 1, 0.82, 0 }, dead = { 0.45, 0.45, 0.45 }, skipped = { 0.6, 0.6, 1 }, missing = { 1, 0.5, 0.3 } }
+dc.STATUS_KEYS = { alive = "DC_ALIVE", dead = "DC_DEAD", skipped = "DC_SKIPPED", missing = "DC_MISSING" }
+
+function dc.Button(parent, width, label, onClick, tip)
+	local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+	button:SetWidth(width)
+	button:SetHeight(20)
+	button.label = label
+	button:SetScript("OnClick", onClick)
+	if tip then
+		button:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:SetText(L[label] or "", 1, 0.82, 0)
+			GameTooltip:AddLine(L[tip], 1, 1, 1, true)
+			GameTooltip:Show()
+		end)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	end
+	return button
+end
+
+-- A thin line between the parts of the panel, and a small gold heading.
+function dc.Rule(f, y)
+	local rule = f:CreateTexture(nil, "ARTWORK")
+	rule:SetTexture("Interface\\Buttons\\WHITE8X8")
+	rule:SetVertexColor(1, 0.82, 0, 0.18)
+	rule:SetHeight(1)
+	rule:SetPoint("TOPLEFT", 16, y)
+	rule:SetPoint("TOPRIGHT", -16, y)
+end
+
+function dc.Heading(f, y)
+	local heading = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("TOPLEFT", 18, y)
+	return heading
+end
+
+function dc.BuildPanel()
+	local f = CreateFrame("Frame", "SquidBotsLiteDungeonClear", UIParent)
+	f:SetWidth(340)
+	f:SetPoint("CENTER", 260, 40)
+	f:SetBackdrop(PANEL_BACKDROP)
+	f:SetBackdropColor(0.04, 0.04, 0.05, 0.96)
+	f:SetFrameStrata("DIALOG")
+	f:SetMovable(true)
+	f:EnableMouse(true)
+	f:SetClampedToScreen(true)
+	f:RegisterForDrag("LeftButton")
+	f:SetScript("OnDragStart", f.StartMoving)
+	f:SetScript("OnDragStop", f.StopMovingOrSizing)
+	table.insert(UISpecialFrames, "SquidBotsLiteDungeonClear")
+	f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	f.title:SetPoint("TOP", 0, -14)
+	local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+	close:SetPoint("TOPRIGHT", -4, -4)
+	-- The run: a coloured dot and its state, the pull mode on the right, what the tank does, the next boss.
+	f.dot = f:CreateTexture(nil, "OVERLAY")
+	f.dot:SetTexture("Interface\\Buttons\\WHITE8X8")
+	f.dot:SetWidth(8)
+	f.dot:SetHeight(8)
+	f.dot:SetPoint("TOPLEFT", 20, -42)
+	f.state = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	f.state:SetPoint("TOPLEFT", 34, -39)
+	f.detail = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	f.detail:SetPoint("TOPLEFT", 20, -58)
+	f.detail:SetWidth(300)
+	f.detail:SetHeight(26)
+	f.detail:SetJustifyH("LEFT")
+	f.detail:SetJustifyV("TOP")
+	f.next = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	f.next:SetPoint("TOPLEFT", 20, -86)
+	f.next:SetWidth(300)
+	f.next:SetJustifyH("LEFT")
+	dc.Rule(f, -102)
+	f.buttons = {}
+	local function Row(y, defs)
+		local x = 16
+		for _, def in ipairs(defs) do
+			local button = dc.Button(f, def[1], def[2], def[3], def[4])
+			button:SetPoint("TOPLEFT", x, y)
+			x = x + def[1] + 4
+			table.insert(f.buttons, button)
+			if def[5] then f[def[5]] = button end
+		end
+	end
+	Row(-110, { { 74, "DC_ON", function() dc.Start() end, "TIP_DC_ON", "on" }, { 74, "DC_OFF", function() dc.Send("off") end, "TIP_DC_OFF", "off" },
+		{ 74, "DC_PAUSE_B", function() dc.Send("pause") end, "TIP_DC_PAUSE", "pause" },
+		{ 74, "DC_SKIP_B", function() dc.Send("skip") end, "TIP_DC_SKIP" } })
+	f.pullTitle = dc.Heading(f, -138)
+	-- ".dc pull off|on|dynamic": off = Leeroy, on = Advanced; the lit one follows the tank's STATUS.
+	Row(-152, { { 100, "DC_P_DYN", function() dc.Send("pull dynamic") end, "TIP_DC_P_DYN", "pullDyn" },
+		{ 98, "DC_P_LEEROY", function() dc.Send("pull off") end, "TIP_DC_P_LEEROY", "pullLeeroy" },
+		{ 98, "DC_P_ADV", function() dc.Send("pull on") end, "TIP_DC_P_ADV", "pullAdv" } })
+	dc.Rule(f, -180)
+	f.bossTitle = dc.Heading(f, -188)
+	local refresh = dc.Button(f, 80, "DC_REFRESH", function() dc.AskBosses() end, "TIP_DC_REFRESH")
+	refresh:SetHeight(18)
+	refresh:SetPoint("TOPRIGHT", -16, -185)
+	table.insert(f.buttons, refresh)
+	f.empty = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	f.empty:SetPoint("TOPLEFT", 20, -dc.ROWS_TOP - 6)
+	f.empty:SetWidth(300)
+	f.empty:SetJustifyH("LEFT")
+	f.rows = {}
+	for i = 1, dc.ROWS do
+		local row = CreateFrame("Frame", nil, f)
+		row:SetWidth(308)
+		row:SetHeight(dc.ROW_H)
+		row:SetPoint("TOPLEFT", 16, -dc.ROWS_TOP - (i - 1) * dc.ROW_H)
+		-- Every other row a little lighter; the next boss in gold.
+		row.bg = row:CreateTexture(nil, "BACKGROUND")
+		row.bg:SetTexture("Interface\\Buttons\\WHITE8X8")
+		row.bg:SetAllPoints()
+		row.mark = row:CreateTexture(nil, "OVERLAY")
+		row.mark:SetWidth(12)
+		row.mark:SetHeight(12)
+		row.mark:SetPoint("LEFT", 4, 0)
+		row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		row.name:SetPoint("LEFT", 20, 0)
+		row.name:SetWidth(166)
+		row.name:SetJustifyH("LEFT")
+		row.status = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		row.status:SetPoint("LEFT", 190, 0)
+		row.status:SetWidth(66)
+		row.status:SetJustifyH("LEFT")
+		-- ".dc go <entry>": the tank heads for that boss (and starts the clear if it was off).
+		row.go = dc.Button(row, 44, "DC_GO", function(self)
+			local entry = self:GetParent().entry
+			if entry then dc.Send("go " .. entry) end
+		end, "TIP_DC_GO")
+		row.go:SetHeight(16)
+		row.go:SetPoint("RIGHT", -2, 0)
+		f.rows[i] = row
+	end
+	f.manual = dc.Button(f, 200, "DC_MANUAL", function() dc.DungeonMode() end, "TIP_DC_MANUAL")
+	f.manual:SetHeight(18)
+	f.manual:SetPoint("BOTTOMLEFT", 16, 14)
+	-- 2.9.4: the raid tank bar (MainTank.lua).
+	-- The panel gives way to the bar (MainTank.lua); its Leave Tank brings the panel back.
+	f.mt = dc.Button(f, 100, "DC_MT", function() dc.MainTank() end, "TIP_DC_MT")
+	f.mt:SetHeight(18)
+	f.mt:SetPoint("BOTTOMRIGHT", -16, 14)
+	-- 2.9.4: the panel opens by itself once per dungeon or raid (dc.AutoCheck); this box turns that off.
+	f.auto = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
+	f.auto:SetWidth(20)
+	f.auto:SetHeight(20)
+	f.auto:SetPoint("BOTTOMLEFT", 14, 36)
+	f.auto.text = f.auto:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	f.auto.text:SetPoint("LEFT", f.auto, "RIGHT", 2, 0)
+	f.auto:SetScript("OnClick", function(self) SquidBotsLiteDB.dcAutoOpen = self:GetChecked() and true or false end)
+	f.auto:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetText(L.DC_AUTO, 1, 0.82, 0)
+		GameTooltip:AddLine(L.TIP_DC_AUTO, 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	f.auto:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	ui.FlattenAll(f)
+	f:Hide()
+	SquidBotsLite_KeepOnControlLoss(f)
+	dc.panel = f
+end
+
+function dc.DungeonMode()
+	if SendOrder("co -wait for attack,+avoid aoe", "follow") then SetOrder("dungeon") end
+end
+
+-- 2.9.4: Main tank on while a clear runs: the clear stops (the Off button's command), the bots go to the
+-- Dungeon mode (you lead). Called by MainTank.lua on the click and on the server's "main on".
+function SquidBotsLite_DcStopForTank()
+	if not dc.enabled or (dc.stopAt and GetTime() - dc.stopAt < 3) then return end
+	dc.stopAt = GetTime()
+	dc.Send("off")
+	dc.DungeonMode()
+	Print(L.DC_OFF_FOR_MT)
+end
+
+-- 2.9.4: fear, stun or charm (PLAYER_CONTROL_LOST) make UIParent close every window of UISpecialFrames. The
+-- windows of a fight (Dungeon clear panel, Main Tank bar) keep Escape but come back at once. UIParent closes
+-- them in the same frame as the event (GetTime() does not change within a frame), before or after us.
+dc.keep = CreateFrame("Frame")
+dc.keep.frames, dc.keep.back = {}, {}
+function SquidBotsLite_KeepOnControlLoss(frame)
+	table.insert(dc.keep.frames, frame)
+	frame:HookScript("OnHide", function(self)
+		self.hiddenAt = GetTime()
+		if dc.keep.lostAt == self.hiddenAt then dc.keep.back[self] = true end
+	end)
+end
+dc.keep:RegisterEvent("PLAYER_CONTROL_LOST")
+dc.keep:SetScript("OnEvent", function(self)
+	local now = GetTime()
+	self.lostAt = now
+	for _, frame in ipairs(self.frames) do
+		if frame.hiddenAt == now and not frame:IsShown() then self.back[frame] = true end
+	end
+end)
+dc.keep:SetScript("OnUpdate", function(self)
+	for frame in pairs(self.back) do
+		self.back[frame] = nil
+		frame:Show()
+	end
+end)
+
+-- Leave Tank on the Main Tank bar: back to the panel (on a realm with the module).
+function SquidBotsLite_ShowDcPanel()
+	if dc.module == "on" or dc.module == "off" then dc.ShowPanel() end
+end
+
+-- 2.9.4: the Main Tank buttons (the bar's and the panel's): the panel gives way to the Main Tank bar, Main tank
+-- on (a running clear stops: MainTank.lua); again while the bar is open, Leave Tank.
+function dc.MainTank()
+	if not SquidBotsLite_OpenMainTank then return end
+	if SquidBotsLite_MainTankShown() then
+		SquidBotsLite_LeaveMainTank()
+		return
+	end
+	if GetNumRaidMembers() == 0 and GetNumPartyMembers() == 0 then
+		Print(L.TIP_MAINTANK_SOLO)
+		return
+	end
+	if dc.panel then dc.panel:Hide() end
+	SquidBotsLite_OpenMainTank()
+end
+
+function dc.TogglePanel()
+	if dc.panel and dc.panel:IsShown() then dc.panel:Hide() else dc.ShowPanel() end
+end
+
+function dc.AskBosses()
+	-- "silent": the list comes as addon messages only, without one chat line per boss.
+	dc.Send("bosses silent")
+end
+
+function dc.ShowPanel()
+	if not dc.panel then dc.BuildPanel() end
+	dc.panel:Show()
+	if dc.module ~= "off" then
+		dc.Send("status silent")
+		dc.AskBosses()
+		dc.askedAt = GetTime()
+	end
+	dc.RefreshPanel()
+end
+
+-- 2.9.4: what the Main Tank bar shows of the clear: the next boss and the bosses killed, from the panel's own data
+-- (the tank's STATUS and boss list). nil outside a dungeon or a raid, or when the realm has no answer.
+function SquidBotsLite_DcInfo()
+	local inside, kind = IsInInstance()
+	if not inside or (kind ~= "party" and kind ~= "raid") or dc.module == "off" or dc.module == "absent" then return nil end
+	local dead, total = 0, 0
+	for _, boss in ipairs(dc.bosses or {}) do
+		if not boss.event then
+			total = total + 1
+			if boss.status == "dead" then dead = dead + 1 end
+		end
+	end
+	if not dc.nextBoss and total == 0 then return nil end
+	return dc.nextBoss, dead, total
+end
+
+-- The bar opening by itself (its key): the same questions as the panel, unless it just asked them.
+function SquidBotsLite_DcAsk()
+	local inside, kind = IsInInstance()
+	if not inside or (kind ~= "party" and kind ~= "raid") or dc.module == "off" or dc.module == "absent" then return end
+	if dc.askedAt and GetTime() - dc.askedAt < 10 then return end
+	dc.askedAt = GetTime()
+	dc.Send("status silent")
+	dc.AskBosses()
+end
+
+-- 2.9.4: the panel opens by itself once per dungeon or raid, to remind that it is there. Not in a fight (it
+-- waits for the end), a battleground or an arena; not again after a reload, nor after a run back from the
+-- graveyard (left dead or as a ghost, back within 10 minutes). Left alive, the instance is forgotten: going in
+-- again opens it. Kept at most 2 hours. Not while the Main Tank bar is open (the bar shows the next boss).
+-- Without the module on the realm, never.
+dc.auto = CreateFrame("Frame")
+function dc.AutoCheck()
+	dc.autoAt = nil
+	if not SquidBotsLiteDB or not SquidBotsLiteCharDB then return end
+	local inside, kind = IsInInstance()
+	local seen = SquidBotsLiteCharDB.dcAuto
+	if not inside or (kind ~= "party" and kind ~= "raid") then
+		if seen and not seen.left then
+			-- Left alive (the door, a hearthstone, a port): next time is a new visit.
+			if UnitIsDeadOrGhost("player") then seen.left = time() else SquidBotsLiteCharDB.dcAuto = nil end
+		end
+		dc.autoWait = nil
+		return
+	end
+	local name, _, difficulty = GetInstanceInfo()
+	local key = (name or "?") .. ":" .. (difficulty or 0)
+	if seen and seen.key == key and time() - (seen.at or 0) < 7200 and (not seen.left or time() - seen.left < 600) then
+		seen.left = nil
+		return
+	end
+	if SquidBotsLiteDB.dcAutoOpen == false or dc.module == "absent" then return end
+	if SquidBotsLite_MainTankShown and SquidBotsLite_MainTankShown() then return end
+	if UnitAffectingCombat("player") then
+		dc.autoWait = true
+		return
+	end
+	dc.autoWait = nil
+	SquidBotsLiteCharDB.dcAuto = { key = key, at = time() }
+	if not (dc.panel and dc.panel:IsShown()) then dc.ShowPanel() end
+end
+for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_REGEN_ENABLED" }) do
+	dc.auto:RegisterEvent(event)
+end
+dc.auto:SetScript("OnEvent", function(_, event)
+	if event ~= "PLAYER_REGEN_ENABLED" then
+		dc.autoAt = GetTime() + 3
+	elseif dc.autoWait then
+		dc.autoAt = GetTime() + 1
+	end
+end)
+dc.auto:SetScript("OnUpdate", function()
+	if dc.autoAt and GetTime() >= dc.autoAt then dc.AutoCheck() end
+end)
+
+function dc.RefreshPanel()
+	local f = dc.panel
+	if not f or not f:IsShown() then return end
+	f.title:SetText(L.DC_LINE)
+	f.manual:SetText(L.DC_MANUAL)
+	f.mt:SetText(L.DC_MT)
+	f.auto.text:SetText(L.DC_AUTO)
+	f.auto:SetChecked(SquidBotsLiteDB.dcAutoOpen ~= false)
+	f.pullTitle:SetText(L.DC_PULL_T)
+	f.bossTitle:SetText(L.DC_BOSSES_T)
+	local off = dc.module == "off"
+	for _, button in ipairs(f.buttons) do
+		if button.label then button:SetText(L[button.label]) end
+		if off then button:Disable() else button:Enable() end
+	end
+	local bosses = off and {} or (dc.bosses or {})
+	local shown = math.min(#bosses, dc.ROWS)
+	-- The panel fits the list: no empty space under a short dungeon.
+	f:SetHeight(dc.ROWS_TOP + math.max(shown, 1) * dc.ROW_H + 66)
+	if off then
+		f.dot:SetVertexColor(1, 0.3, 0.3)
+		f.state:SetText("|cffff5555" .. L.DC_DISABLED .. "|r")
+		f.detail:SetText("")
+		f.next:SetText("")
+		f.empty:SetText("")
+		for _, row in ipairs(f.rows) do row:Hide() end
+		return
+	end
+	local r, g, b, state
+	if not dc.enabled then
+		r, g, b, state = 0.6, 0.6, 0.6, L.DC_STOPPED
+	elseif dc.state == "paused" then
+		r, g, b, state = 1, 0.82, 0, L.DC_PAUSED
+	elseif dc.stall and dc.stall ~= "" then
+		r, g, b, state = 1, 0.35, 0.35, L.DC_STALLED
+	else
+		r, g, b, state = 0.35, 1, 0.35, L.DC_RUNNING
+	end
+	f.dot:SetVertexColor(r, g, b)
+	f.state:SetText(state)
+	f.state:SetTextColor(r, g, b)
+	local detail = dc.detail or ""
+	if dc.stall and dc.stall ~= "" then detail = detail .. " |cffff5555" .. dc.stall .. "|r" end
+	f.detail:SetText(detail)
+	f.next:SetText(string.format(L.DC_NEXT, dc.nextBoss or L.DC_NONE))
+	f.pause.label = dc.state == "paused" and "DC_RESUME" or "DC_PAUSE_B"
+	f.pause:SetText(L[f.pause.label])
+	if dc.enabled then f.on:Disable() else f.off:Disable() end
+	if not dc.enabled then f.pause:Disable() end
+	for key, value in pairs({ pullLeeroy = 0, pullAdv = 1, pullDyn = 2 }) do
+		if dc.pull == value then f[key]:LockHighlight() else f[key]:UnlockHighlight() end
+	end
+	f.empty:SetText(#bosses == 0 and L.DC_NO_LIST or "")
+	local dead, total = 0, 0
+	for _, boss in ipairs(bosses) do
+		if not boss.event then
+			total = total + 1
+			if boss.status == "dead" then dead = dead + 1 end
+		end
+	end
+	f.bossTitle:SetText(total > 0 and string.format("%s  |cffaaaaaa%d / %d|r", L.DC_BOSSES_T, dead, total) or L.DC_BOSSES_T)
+	for i, row in ipairs(f.rows) do
+		local boss = bosses[i]
+		if boss then
+			local isNext = dc.enabled and boss.name == dc.nextBoss
+			row.entry = not boss.event and boss.entry or nil
+			row.name:SetText(boss.name)
+			local color = dc.STATUS_COLORS[boss.status] or { 1, 1, 1 }
+			row.name:SetTextColor(color[1], color[2], color[3])
+			row.status:SetText(dc.STATUS_KEYS[boss.status] and L[dc.STATUS_KEYS[boss.status]] or boss.status)
+			row.status:SetTextColor(color[1], color[2], color[3])
+			if isNext then
+				row.bg:SetVertexColor(1, 0.82, 0, 0.16)
+			else
+				row.bg:SetVertexColor(1, 1, 1, i % 2 == 0 and 0.04 or 0)
+			end
+			-- A skull on a dead boss, an arrow on the one the tank heads for.
+			if boss.status == "dead" then
+				row.mark:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_8")
+				row.mark:Show()
+			elseif isNext then
+				row.mark:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
+				row.mark:Show()
+			else
+				row.mark:Hide()
+			end
+			row.go:SetText(L.DC_GO)
+			if row.entry and boss.status ~= "dead" then row.go:Show() else row.go:Hide() end
+			row:Show()
+		else
+			row:Hide()
+		end
+	end
+end
+
+function dc.TickLine()
+	if dc.line and dc.hideAt and GetTime() > dc.hideAt then
+		dc.line:Hide()
+		dc.hideAt = nil
+	end
+end
+
+ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", function(_, _, message)
+	if dc.IsAnswer(message) and dc.JustAnswered() then return true end
+end)
+for _, e in ipairs({ "CHAT_MSG_WHISPER", "CHAT_MSG_WHISPER_INFORM" }) do
+	ChatFrame_AddMessageEventFilter(e, function(_, _, message, name)
+		if message == ".dc status" and name == UnitName("player") and dc.JustAnswered() then return true end
+	end)
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_LOGIN")
@@ -2648,25 +3771,39 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 		BuildSpecs()
 		RefreshTexts()
 		for _, e in ipairs({ "CHAT_MSG_WHISPER", "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER", "CHAT_MSG_RAID",
-			"CHAT_MSG_RAID_LEADER", "CHAT_MSG_SYSTEM" }) do
+			"CHAT_MSG_RAID_LEADER", "CHAT_MSG_SYSTEM", "CHAT_MSG_ADDON", "PARTY_MEMBERS_CHANGED", "RAID_ROSTER_UPDATE" }) do
 			self:RegisterEvent(e)
 		end
+		dc.probeAt = GetTime() + dc.PROBE_DELAY
 		local elapsed = 0
 		self:SetScript("OnUpdate", function(_, delta)
 			elapsed = elapsed + delta
 			if elapsed < 0.3 then return end
 			elapsed = 0
 			RefreshOverlays()
-			RefreshCompactOverlays()
+			compact.Refresh()
 			RefreshToasts()
 			RefreshRelease()
 			ProbeRoles()
 			TickAlts()
 			TickSpecs()
+			dc.Tick()
+			dc.TickLine()
 		end)
+	elseif event == "CHAT_MSG_ADDON" then
+		if arg1 == "DC" and arg2 then dc.OnAddon(arg2) end
 	elseif event == "CHAT_MSG_WHISPER" then
+		dc.OnWhisperBack(arg1, arg2)
 		OnWhisper(arg1, arg2)
+	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
+		-- A raid of more than 5 or not: the Main Tank button shows or hides.
+		if bar then RefreshMainTankButton() end
+		-- An alt logging in joins the group: its row is confirmed sooner than by the list.
+		for _, alt in ipairs(roster) do
+			if alt.pending then refreshAt = math.min(refreshAt or math.huge, GetTime() + 0.5) end
+		end
 	elseif event == "CHAT_MSG_SYSTEM" then
+		dc.OnSystem(arg1)
 		if OnSystem(arg1) then return end
 		-- "Kegarink Bot joins as tank": a bot name can hold a space since CoA Bots 1.5 (CoaBotSurname).
 		local name, role = arg1:match("^(.-) joins as (%a+)")
@@ -2708,9 +3845,15 @@ SlashCmdList["SQUIDBOTSLITE"] = function(message)
 		Print(L.LANG_SET)
 	elseif command == "channel" then
 		SquidBotsLiteDB.channel = rest
-		Print(string.format(L.CHANNEL_SET, rest ~= "" and rest or table.concat(CHANNELS, ", ")))
+		Print(string.format(L.CHANNEL_SET, rest ~= "" and rest or BOTS_CHANNEL))
+	elseif command == "missions" then
+		if SquidBotsLite_ShowMissions then SquidBotsLite_ShowMissions() end
 	elseif command == "alts" then
 		ShowAlts()
+	elseif command == "dashboard" or command == "dash" then
+		if SquidBotsLite_ShowDashboard then SquidBotsLite_ShowDashboard() end
+	elseif command == "dc" then
+		dc.ShowPanel()
 	elseif command == "raidframes" then
 		SquidBotsLiteDB.raidFrames = string.lower(rest) ~= "off"
 		Print(SquidBotsLiteDB.raidFrames and L.RAIDFRAMES_ON or L.RAIDFRAMES_OFF)
@@ -2722,6 +3865,10 @@ SlashCmdList["SQUIDBOTSLITE"] = function(message)
 		SquidBotsLite_OpenSheet(rest)
 	elseif command == "spec" or command == "specs" then
 		ShowSpecs()
+	elseif command == "questask" and SquidBotsLite_QuestAsk then
+		SquidBotsLite_QuestAsk(rest)
+	elseif command == "mt" and SquidBotsLite_MainTankDebug then
+		SquidBotsLite_MainTankDebug()
 	elseif command == "roles" then
 		SquidBotsLiteDB.autoRoles = string.lower(rest) ~= "off"
 		Print(SquidBotsLiteDB.autoRoles and L.ROLES_ON or L.ROLES_OFF)

@@ -6,25 +6,28 @@
 local STRINGS = {
 	en = {
 		TITLE = "Bot sheet", GEAR = "Gear", BAGS = "Bags", QUESTS = "Quests", INFO = "Info", REFRESH = "Refresh",
-		BEST_GEAR = "Best gear", TRADE = "Open trade", FOLLOW = "Follow", STAY = "Stay", SUMMON = "Summon",
-		LOGOUT = "Log out", WAIT = "Asking the bot...", NO_REPLY = "No answer: is it one of your bots?",
+		BEST_GEAR = "Best gear", BEST_GEAR_ASK = "%s gets free gear for its level, replacing what it wears. Players who earn their gear may not want this. Sure?",
+		BEST_GEAR_TIP = "Free gear for its level from the server, replacing what it wears (cannot be undone). A server can turn it off for alts (AiPlayerbot.AutoGearCommandAltBots = 0).",
+		TRADE = "Open trade", FOLLOW = "Follow", STAY = "Stay", SUMMON = "Summon",
+		LOGOUT = "Log out", WAIT = "Asking the bot...", WAIT_AGAIN = "Still waiting: asking the bot again...", NO_REPLY = "No answer: is it one of your bots?",
 		NOT_IN_GROUP = "Invite it to your group to see its gear.", OUT_OF_RANGE = "Come closer to see its gear.",
 		EMPTY_BAGS = "Nothing in the bags.", NO_QUESTS = "No quest.",
-		GIVE = "Give it to me", SOULBOUND = "Soulbound: cannot be traded", TRADE_RANGE = "Trade: stand next to the bot (10 yards).", EQUIP = "Equip", USE = "Use", SELL = "Sell (bot next to a vendor)", SELL_GREY = "Sell grey items",
+		GIVE = "Give it to me", SOULBOUND = "Soulbound: cannot be traded", TRADE_RANGE = "Trade: stand next to the bot (10 yards).", EQUIP = "Equip", USE = "Use", SELL = "Sell (bot next to a vendor)", SELL_GREY = "Sell junk",
 		NO_VENDOR = "Nothing sold: the bot sells only standing right next to a vendor (Summon it there, or walk it there with Follow).", LINK = "Link in chat",
 		UNEQUIP = "Unequip", ITEM_HINT = "Click an item for what to do with it. Shift-click: link it in chat.",
 		GEAR_HINT = "Right-click a piece to take it off.", TRADE_HINT = "Give it to me opens a trade with the bot: accept it.",
 		MOUNTS = "Mounts", AUTO_MOUNT = "Automatic choice", PREFERRED = "preferred",
 		FOR_GROUND = "favourite on the ground", FOR_FLYING = "favourite in the air",
+		MOUNT_SEARCH = "Search a mount...", MOUNT_NONE = "No mount matches \"%s\".",
 		GROUND = "ground", FLYING = "flying", BOTH = "ground and flying",
 		MOUNT_HINT = "Click a mount: your bot rides it from now on. One ground and one flying favourite; a ground-and-flying mount is both. Automatic choice: the bot picks again.",
 		NO_MOUNT_CMD = "No answer: this server's CoA Bots has no mount command yet (2.1 or later).",
-		NO_MOUNTS = "This bot knows no mount.",
+		NO_MOUNTS = "No mount known: give this alt a mount, it rides when you ride.",
 		USAGE = "/sbl bot <name>, or target a bot of your group and type /sbl bot.",
 		NOT_A_MEMBER = "%s is not in your group.",
 		STRATS = "Strategies", COMBAT = "In combat", NONCOMBAT = "Out of combat", ADD = "Add...",
 		STRAT_HINT = "Click a strategy to remove it; Add... to give one. The server resets them on a specialization switch.",
-		BANK = "Bank", BAGS_BTN = "Bags", DEPOSIT = "Put in the bank", WITHDRAW = "Take from the bank",
+		BANK = "Bank", BAGS_BTN = "Bags", DEPOSIT = "Put in the bank", DESTROY = "Destroy", DESTROY_ASK = "%s destroys %s (every stack of it in its bags). Sure?", WITHDRAW = "Take from the bank",
 		NO_BANKER = "No banker next to the bot: the bank opens only when the bot stands by a banker.",
 		ABANDON = "Abandon this quest", ABANDON_ASK = "%s abandons %s?", QUEST_HINT = "Right-click a quest to abandon it.",
 		DROP_HINT = "Drop an item from your bags here to give it to the bot (a trade opens).",
@@ -44,25 +47,28 @@ local STRINGS = {
 	},
 	fr = {
 		TITLE = "Fiche du bot", GEAR = "Équipement", BAGS = "Sacs", QUESTS = "Quêtes", INFO = "Infos", REFRESH = "Actualiser",
-		BEST_GEAR = "Meilleur équipement", TRADE = "Ouvrir l'échange", FOLLOW = "Suivre", STAY = "Rester", SUMMON = "Appeler",
-		LOGOUT = "Déconnecter", WAIT = "Demande au bot...", NO_REPLY = "Pas de réponse : est-ce bien un de vos bots ?",
+		BEST_GEAR = "Meilleur équipement", BEST_GEAR_ASK = "%s reçoit un équipement gratuit de son niveau, à la place de ce qu'il porte. Les joueurs qui gagnent leur équipement n'en voudront peut-être pas. Sûr ?",
+		BEST_GEAR_TIP = "Équipement gratuit de son niveau donné par le serveur, à la place de ce qu'il porte (impossible à annuler). Un serveur peut le désactiver pour les alts (AiPlayerbot.AutoGearCommandAltBots = 0).",
+		TRADE = "Ouvrir l'échange", FOLLOW = "Suivre", STAY = "Rester", SUMMON = "Appeler",
+		LOGOUT = "Déconnecter", WAIT = "Demande au bot...", WAIT_AGAIN = "Toujours en attente : je redemande au bot...", NO_REPLY = "Pas de réponse : est-ce bien un de vos bots ?",
 		NOT_IN_GROUP = "Invitez-le dans votre groupe pour voir son équipement.", OUT_OF_RANGE = "Approchez-vous pour voir son équipement.",
 		EMPTY_BAGS = "Rien dans les sacs.", NO_QUESTS = "Aucune quête.",
-		GIVE = "Me le donner", SOULBOUND = "Lié : impossible à échanger", TRADE_RANGE = "Échange : placez-vous à côté du bot (10 mètres).", EQUIP = "Équiper", USE = "Utiliser", SELL = "Vendre (bot à côté d'un marchand)", SELL_GREY = "Vendre les gris",
+		GIVE = "Me le donner", SOULBOUND = "Lié : impossible à échanger", TRADE_RANGE = "Échange : placez-vous à côté du bot (10 mètres).", EQUIP = "Équiper", USE = "Utiliser", SELL = "Vendre (bot à côté d'un marchand)", SELL_GREY = "Vendre la camelote",
 		NO_VENDOR = "Rien vendu : le bot ne vend que collé à un marchand (appelez-le devant le marchand, ou amenez-le avec Suivre).", LINK = "Lien dans le chat",
 		UNEQUIP = "Retirer", ITEM_HINT = "Cliquez un objet pour choisir quoi en faire. Maj-clic : lien dans le chat.",
 		GEAR_HINT = "Clic droit sur une pièce pour la retirer.", TRADE_HINT = "Me le donner ouvre un échange avec le bot : acceptez-le.",
 		MOUNTS = "Montures", AUTO_MOUNT = "Choix automatique", PREFERRED = "préférée",
 		FOR_GROUND = "préférée au sol", FOR_FLYING = "préférée en vol",
+		MOUNT_SEARCH = "Chercher une monture...", MOUNT_NONE = "Aucune monture ne correspond à « %s ».",
 		GROUND = "sol", FLYING = "vol", BOTH = "sol et vol",
 		MOUNT_HINT = "Cliquez une monture : votre bot la prend désormais. Une préférée au sol, une en vol ; une monture sol et vol compte pour les deux. Choix automatique : le bot choisit à nouveau.",
 		NO_MOUNT_CMD = "Pas de réponse : le CoA Bots de ce serveur n'a pas encore la commande des montures (2.1 ou plus).",
-		NO_MOUNTS = "Ce bot ne connaît aucune monture.",
+		NO_MOUNTS = "Aucune monture connue : donnez une monture à cet alt, il monte quand vous montez.",
 		USAGE = "/sbl bot <nom>, ou ciblez un bot de votre groupe et tapez /sbl bot.",
 		NOT_A_MEMBER = "%s n'est pas dans votre groupe.",
 		STRATS = "Stratégies", COMBAT = "En combat", NONCOMBAT = "Hors combat", ADD = "Ajouter...",
 		STRAT_HINT = "Cliquez une stratégie pour la retirer ; Ajouter... pour en donner une. Le serveur les remet à zéro à un changement de spé.",
-		BANK = "Banque", BAGS_BTN = "Sacs", DEPOSIT = "Mettre à la banque", WITHDRAW = "Reprendre de la banque",
+		BANK = "Banque", BAGS_BTN = "Sacs", DEPOSIT = "Mettre à la banque", DESTROY = "Détruire", DESTROY_ASK = "%s détruit %s (toutes les piles dans ses sacs). Sûr ?", WITHDRAW = "Reprendre de la banque",
 		NO_BANKER = "Pas de banquier à côté du bot : la banque ne s'ouvre que si le bot est devant un banquier.",
 		ABANDON = "Abandonner cette quête", ABANDON_ASK = "%s abandonne %s ?", QUEST_HINT = "Clic droit sur une quête pour l'abandonner.",
 		DROP_HINT = "Déposez ici un objet de vos sacs pour le donner au bot (un échange s'ouvre).",
@@ -81,97 +87,104 @@ local STRINGS = {
 		T_NO_OPTIONS = "Aucun talent à choisir (classes CoA seulement, CoA Bots 2.1 ou plus).", T_SAVING = "Apprentissage de %d rangs...",
 	},
 }
-STRINGS.zh = {
- ["ABANDON"] = "放弃任务",
- ["ABANDON_ASK"] = "是否让 %s 放弃 %s？",
- ["ADD"] = "添加…",
- ["AUTO_MOUNT"] = "自动选择",
- ["BAGS"] = "背包",
- ["BAGS_BTN"] = "背包",
- ["BANK"] = "银行",
- ["BEST_GEAR"] = "自动配装",
- ["BOTH"] = "地面与飞行",
- ["COMBAT"] = "战斗中",
- ["DEPOSIT"] = "存入银行",
- ["DROP_HINT"] = "把你背包中的物品拖到这里，可打开交易交给机器人。",
- ["EMPTY_BAGS"] = "背包为空。",
- ["EQUIP"] = "装备",
- ["FLYING"] = "飞行",
- ["FOLLOW"] = "跟随",
- ["FOR_FLYING"] = "飞行首选",
- ["FOR_GROUND"] = "地面首选",
- ["GEAR"] = "装备",
- ["GEAR_HINT"] = "右键点击装备可卸下。",
- ["GIVE"] = "交给我",
- ["GOLD"] = "金钱",
- ["GROUND"] = "地面",
- ["ILVL"] = "物品等级 %d",
- ["INFO"] = "信息",
- ["ITEM_HINT"] = "点击物品选择操作；Shift点击发送链接。",
- ["LEVEL"] = "等级 %d %s",
- ["LINK"] = "发送物品链接",
- ["LOGOUT"] = "退出登录",
- ["MODEL_HINT"] = "拖动可旋转模型。",
- ["MOUNTS"] = "坐骑",
- ["MOUNT_HINT"] = "点击坐骑设为首选，可分别设置地面和飞行坐骑。两用坐骑会同时设置两项；选择自动时由机器人自行决定。",
- ["NONCOMBAT"] = "脱战时",
- ["NOT_A_MEMBER"] = "%s 不在你的队伍中。",
- ["NOT_IN_GROUP"] = "先邀请它加入队伍，才能查看装备。",
- ["NO_BANKER"] = "机器人附近没有银行员，请先带它到银行员身边。",
- ["NO_MOUNTS"] = "该机器人尚未学会坐骑。",
- ["NO_MOUNT_CMD"] = "未收到回复：坐骑管理需要服务端 CoA Bots 2.1 或以上版本支持。",
- ["NO_QUESTS"] = "没有任务。",
- ["NO_REPLY"] = "未收到回复，请确认它是你的机器人。",
- ["NO_VENDOR"] = "未出售物品：机器人必须紧靠商人。请召唤它到商人旁，或让它跟随你过去。",
- ["OUT_OF_RANGE"] = "请靠近机器人后查看装备。",
- ["PREFERRED"] = "首选",
- ["QUESTS"] = "任务",
- ["QUEST_HINT"] = "右键点击任务可放弃。",
- ["REFRESH"] = "刷新",
- ["SELL"] = "出售（需靠近商人）",
- ["SELL_GREY"] = "出售灰色物品",
- ["SOULBOUND"] = "已绑定，无法交易",
- ["SPEC"] = "专精",
- ["STAY"] = "停留",
- ["STRATS"] = "行为策略",
- ["STRAT_HINT"] = "点击策略可移除，点击“添加”可增加。切换专精时服务端会重置策略。",
- ["SUMMON"] = "召唤",
- ["TALENTS"] = "天赋",
- ["TITLE"] = "机器人管理",
- ["TRADE"] = "打开交易",
- ["TRADE_HINT"] = "“交给我”会打开与机器人的交易，请确认交易。",
- ["TRADE_RANGE"] = "请站在机器人10码以内进行交易。",
- ["T_ABILITY"] = "技能",
- ["T_AUTOPICK"] = "恢复推荐方案",
- ["T_AUTOPICK_ASK"] = "是否让 %s 重新采用当前等级、当前专精的推荐天赋？",
- ["T_BACK"] = "已学天赋",
- ["T_CAN"] = "现在可以学习。",
- ["T_CANCEL"] = "取消",
- ["T_CANNOT"] = "暂时无法学习：等级、前置天赋或点数不足。可排在前置天赋后保存，按顺序学习。",
- ["T_CHOOSE"] = "选择天赋",
- ["T_CHOOSE_HINT"] = "用加减按钮调整待学等级，点击保存后才生效。已保存的等级不能直接退回，可恢复推荐方案。",
- ["T_CLASS"] = "职业",
- ["T_COST"] = "消耗 %d",
- ["T_HINT"] = "按天赋树查看已学天赋与付费技能。自己的小号可自行选择；随机机器人使用对应专精的社区推荐方案，可通过“恢复推荐方案”重置。",
- ["T_LEFT"] = "选择后剩余：专精 %d，职业 %d",
- ["T_NONE"] = "尚未学习天赋。",
- ["T_NO_CMD"] = "未收到回复：天赋列表需要支持飞升职业的 CoA Bots 2.1 或以上版本。",
- ["T_NO_OPTIONS"] = "没有可选天赋：仅适用于飞升职业，并需要 CoA Bots 2.1 或以上版本。",
- ["T_POINTS"] = "专精：已用 %d，剩余 %d － 职业：已用 %d，剩余 %d",
- ["T_REQ"] = "等级 %d",
- ["T_REQUIRES"] = "需要：%s",
- ["T_SAVE"] = "保存（%d）",
- ["T_SAVING"] = "正在学习 %d 级天赋…",
- ["T_SPEC"] = "专精",
- ["T_SPENT"] = "已用天赋点：%d",
- ["UNEQUIP"] = "卸下",
- ["USAGE"] = "输入 /sbl bot 名字，或选中队伍里的机器人后输入 /sbl bot。",
- ["USE"] = "使用",
- ["WAIT"] = "正在向机器人查询…",
- ["WITHDRAW"] = "取出银行",
- ["XP"] = "经验",
-}
 
+STRINGS.zh = {
+	TITLE = "机器人管理",
+	GEAR = "装备",
+	BAGS = "背包",
+	QUESTS = "任务",
+	INFO = "信息",
+	REFRESH = "刷新",
+	BEST_GEAR = "自动配装",
+	BEST_GEAR_ASK = "%s 将获得符合等级的免费装备，并替换当前装备。若想自行获取装备，可取消此操作。确定继续吗？",
+	BEST_GEAR_TIP = "由服务器发放符合等级的免费装备，替换当前装备。此操作不可撤销。服务器可禁用小号自动换装（AiPlayerbot.AutoGearCommandAltBots = 0）。",
+	TRADE = "打开交易",
+	FOLLOW = "跟随",
+	STAY = "停留",
+	SUMMON = "召唤",
+	LOGOUT = "退出登录",
+	WAIT = "正在向机器人查询…",
+	WAIT_AGAIN = "尚未收到回复，正在重新查询…",
+	NO_REPLY = "未收到回复，请确认它是你的机器人。",
+	NOT_IN_GROUP = "先邀请它加入队伍，才能查看装备。",
+	OUT_OF_RANGE = "请靠近机器人后查看装备。",
+	EMPTY_BAGS = "背包为空。",
+	NO_QUESTS = "没有任务。",
+	GIVE = "交给我",
+	SOULBOUND = "已绑定，无法交易",
+	TRADE_RANGE = "请站在机器人10码以内进行交易。",
+	EQUIP = "装备",
+	USE = "使用",
+	SELL = "出售（需靠近商人）",
+	SELL_GREY = "出售垃圾",
+	NO_VENDOR = "未出售物品：机器人必须紧靠商人。请召唤它到商人旁，或让它跟随你过去。",
+	LINK = "发送物品链接",
+	UNEQUIP = "卸下",
+	ITEM_HINT = "点击物品选择操作；Shift点击发送链接。",
+	GEAR_HINT = "右键点击装备可卸下。",
+	TRADE_HINT = "“交给我”会打开与机器人的交易，请确认交易。",
+	MOUNTS = "坐骑",
+	AUTO_MOUNT = "自动选择",
+	PREFERRED = "首选",
+	FOR_GROUND = "地面首选",
+	FOR_FLYING = "飞行首选",
+	MOUNT_SEARCH = "搜索坐骑…",
+	MOUNT_NONE = "没有匹配「%s」的坐骑。",
+	GROUND = "地面",
+	FLYING = "飞行",
+	BOTH = "地面与飞行",
+	MOUNT_HINT = "点击坐骑设为首选，可分别设置地面和飞行坐骑。两用坐骑会同时设置两项；选择自动时由机器人自行决定。",
+	NO_MOUNT_CMD = "未收到回复：坐骑管理需要服务端 CoA Bots 2.1 或以上版本支持。",
+	NO_MOUNTS = "尚无坐骑。给小号一匹坐骑，它就会在你上马时上马。",
+	USAGE = "输入 /sbl bot 名字，或选中队伍里的机器人后输入 /sbl bot。",
+	NOT_A_MEMBER = "%s 不在你的队伍中。",
+	STRATS = "行为策略",
+	COMBAT = "战斗中",
+	NONCOMBAT = "脱战时",
+	ADD = "添加…",
+	STRAT_HINT = "点击策略可移除，点击“添加”可增加。切换专精时服务端会重置策略。",
+	BANK = "银行",
+	BAGS_BTN = "背包",
+	DEPOSIT = "存入银行",
+	DESTROY = "摧毁",
+	DESTROY_ASK = "%s 将摧毁 %s（背包中所有堆叠）。确定继续吗？",
+	WITHDRAW = "取出银行",
+	NO_BANKER = "机器人附近没有银行员，请先带它到银行员身边。",
+	ABANDON = "放弃任务",
+	ABANDON_ASK = "是否让 %s 放弃 %s？",
+	QUEST_HINT = "右键点击任务可放弃。",
+	DROP_HINT = "把你背包中的物品拖到这里，可打开交易交给机器人。",
+	GOLD = "金钱",
+	SPEC = "专精",
+	XP = "经验",
+	ILVL = "物品等级 %d",
+	LEVEL = "等级 %d %s",
+	MODEL_HINT = "拖动可旋转模型。",
+	TALENTS = "天赋",
+	T_SPENT = "已用天赋点：%d",
+	T_AUTOPICK = "恢复推荐方案",
+	T_AUTOPICK_ASK = "是否让 %s 重新采用当前等级、当前专精的推荐天赋？",
+	T_NONE = "尚未学习天赋。",
+	T_NO_CMD = "未收到回复：天赋列表需要支持飞升职业的 CoA Bots 2.1 或以上版本。",
+	T_HINT = "按天赋树查看已学天赋与付费技能。自己的小号可自行选择；随机机器人使用对应专精的社区推荐方案，可通过“恢复推荐方案”重置。",
+	T_ABILITY = "技能",
+	T_REQUIRES = "需要：%s",
+	T_CAN = "现在可以学习。",
+	T_CANNOT = "暂时无法学习：等级、前置天赋或点数不足。可排在前置天赋后保存，按顺序学习。",
+	T_CHOOSE = "选择天赋",
+	T_SAVE = "保存（%d）",
+	T_CANCEL = "取消",
+	T_BACK = "已学天赋",
+	T_POINTS = "专精：已用 %d，剩余 %d － 职业：已用 %d，剩余 %d",
+	T_LEFT = "选择后剩余：专精 %d，职业 %d",
+	T_CLASS = "职业",
+	T_SPEC = "专精",
+	T_REQ = "等级 %d",
+	T_COST = "消耗 %d",
+	T_CHOOSE_HINT = "用加减按钮调整待学等级，点击保存后才生效。已保存的等级不能直接退回，可恢复推荐方案。",
+	T_NO_OPTIONS = "没有可选天赋：仅适用于飞升职业，并需要 CoA Bots 2.1 或以上版本。",
+	T_SAVING = "正在学习 %d 级天赋…",
+}
 local function T(key)
 	local lang = SquidBotsLiteDB and SquidBotsLiteDB.lang
 	return (STRINGS[lang] or STRINGS.en)[key]
@@ -182,7 +195,7 @@ local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interfac
 -- The bot answers line by line; a listing is over once it stays quiet this long. The server drops a line it
 -- already sent in the last 2 s (AiPlayerbot.RepeatDelay), so a new request waits that long.
 local QUIET, GIVE_UP, REPEAT_DELAY = 0.7, 6, 2.1
-local BAG_COLS, BAG_ROWS, QUEST_ROWS, MOUNT_ROWS = 8, 6, 14, 11
+local BAG_COLS, BAG_ROWS, QUEST_ROWS, MOUNT_ROWS = 8, 6, 14, 10
 -- Inventory slot ids of the 3.3.5 client, left column, right column, then weapons.
 local GEAR_LEFT = { 1, 2, 3, 15, 5, 4, 19, 9 }
 local GEAR_RIGHT = { 10, 6, 7, 8, 11, 12, 13, 14 }
@@ -223,7 +236,7 @@ end
 local function Whisper(text)
 	if not current then return end
 	hideFrom[current] = GetTime() + QUIET + 1
-	SendChatMessage(text, "WHISPER", nil, current)
+	SquidBotsLite_QuietWhisper(text, current)
 end
 
 -- ---------------------------------------------------------------------------
@@ -231,6 +244,8 @@ end
 -- ---------------------------------------------------------------------------
 local Render
 
+-- A request too soon after the same one (the server would drop its lines) waits its turn instead of being lost.
+local later = {}
 local function Ask(kind, command)
 	if not current then return end
 	if capture then
@@ -239,9 +254,13 @@ local function Ask(kind, command)
 		return
 	end
 	local key = current .. ":" .. kind
-	if lastAsked[key] and GetTime() - lastAsked[key] < REPEAT_DELAY then return end
+	if lastAsked[key] and GetTime() - lastAsked[key] < REPEAT_DELAY then
+		later[kind] = { name = current, command = command, at = lastAsked[key] + REPEAT_DELAY }
+		sheet.status:SetText(T("WAIT"))
+		return
+	end
 	lastAsked[key] = GetTime()
-	capture = { name = current, kind = kind, lines = {}, started = GetTime(), last = GetTime() }
+	capture = { name = current, kind = kind, command = command, lines = {}, started = GetTime(), last = GetTime() }
 	sheet.status:SetText(T("WAIT"))
 	Whisper(command)
 end
@@ -358,6 +377,14 @@ end
 local function Finish()
 	local done = capture
 	capture = nil
+	-- Silent the first time (a bot just logged in, a busy server): asked once more before saying so.
+	if #done.lines == 0 and not done.retried and done.name == current and done.command then
+		capture = { name = done.name, kind = done.kind, command = done.command, lines = {}, started = GetTime(),
+			last = GetTime(), retried = true }
+		sheet.status:SetText(T("WAIT_AGAIN"))
+		Whisper(done.command)
+		return
+	end
 	hideFrom[done.name] = GetTime() + 1
 	if done.name ~= current then return end
 	if done.kind == "bags" then
@@ -413,7 +440,9 @@ watch:SetScript("OnEvent", function(_, event, message, sender)
 			capture.last = GetTime()
 			if (capture.kind == "mounts" and message:find("^Mounts: %d+")) or (capture.kind == "talents" and message:find("^Talents: %d+"))
 				or (capture.kind == "options" and message:find("^Talent options: %d+")) then Finish()
-			elseif (capture.kind == "co" or capture.kind == "nc") and message:find("^Strategies:") then Finish() end
+			elseif (capture.kind == "co" or capture.kind == "nc") and message:find("^Strategies:") then Finish()
+			-- CoA Bots 2.9.4 ends the bags and the bank with "Items: N": no need to wait for the quiet.
+			elseif (capture.kind == "bags" or capture.kind == "bank") and message:find("^Items: %d+") then Finish() end
 		end
 	elseif sheet and sheet:IsShown() and tab == "gear" then
 		Render()
@@ -425,10 +454,18 @@ watch:SetScript("OnUpdate", function(_, delta)
 	elapsed = elapsed + delta
 	if elapsed < 0.25 then return end
 	elapsed = 0
+	local now = GetTime()
 	if capture then
-		local now = GetTime()
 		if (#capture.lines > 0 and now - capture.last > QUIET) or now - capture.started > GIVE_UP then
 			Finish()
+		end
+	end
+	for kind, q in pairs(later) do
+		if q.name ~= current then
+			later[kind] = nil
+		elseif not capture and now >= q.at then
+			later[kind] = nil
+			Ask(kind, q.command)
 		end
 	end
 end)
@@ -450,12 +487,24 @@ ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", Hide)
 local MENU_HIDE_DELAY = 1
 local menuFrame = CreateFrame("Frame", "SquidBotsLiteSheetMenu", UIParent, "UIDropDownMenuTemplate")
 
--- "t [item]" opens a trade with the master first, and puts the item in only once the trade is open.
+-- "t [item]" opens a trade with the master first, and puts the item in only once the trade is open. On an item
+-- already in the trade, "t" takes it back out: it is sent again only while the item is not on the bot's side.
+local function InTrade(link)
+	local id = link:match("item:(%d+)")
+	for i = 1, 6 do
+		local l = GetTradeTargetItemLink(i)
+		if l and l:match("item:(%d+)") == id then return true end
+	end
+end
 local giveAt
 local function Give(link)
 	local unit = UnitOf(current)
 	if not unit or not CheckInteractDistance(unit, 2) then
 		Print(T("TRADE_RANGE"))
+		return
+	end
+	if TradeFrame:IsShown() then
+		if not InTrade(link) then Whisper("t " .. link) end
 		return
 	end
 	Whisper("t " .. link)
@@ -466,36 +515,63 @@ giveWatch:SetScript("OnUpdate", function()
 	if giveAt and GetTime() >= giveAt.at then
 		local link = giveAt.link
 		giveAt = nil
-		Whisper("t " .. link)
+		if not InTrade(link) then Whisper("t " .. link) end
 	end
 end)
 
-local sellCheck
+-- An item sold, destroyed or moved leaves the list at once (2.9.4); a sale the bot does not make puts it back.
+local function TakeOut(list, item)
+	for i, other in ipairs(list) do
+		if other == item then
+			table.remove(list, i)
+			if Render then Render() end
+			return i
+		end
+	end
+end
+
+local sellCheck, AfterChange
 -- One item: silence means no vendor. "gray" with nothing grey is silent too, so it is not checked.
-local function Sell(text, unchecked)
+local function Sell(text, unchecked, item)
 	Whisper("s " .. text)
-	if not unchecked then sellCheck = { name = current, at = GetTime() + 3 } end
+	if not unchecked then
+		sellCheck = { name = current, at = GetTime() + 3, item = item, list = bags, index = item and TakeOut(bags, item) }
+	end
 end
 local sellWatch = CreateFrame("Frame")
 sellWatch:RegisterEvent("CHAT_MSG_WHISPER")
 sellWatch:SetScript("OnEvent", function(_, _, message, sender)
-	if sellCheck and sender == sellCheck.name and message:find("^Selling ") then sellCheck = nil end
+	if not sellCheck or sender ~= sellCheck.name then return end
+	-- Sold: the bags are asked again now. On its way to the vendor it targets: more time.
+	if message:find("^Selling ") or message:find("^Sold ") then
+		sellCheck = nil
+		AfterChange()
+	elseif message:find("^Going to ") then
+		sellCheck.at = GetTime() + 20
+	end
 end)
 sellWatch:SetScript("OnUpdate", function()
 	if sellCheck and GetTime() >= sellCheck.at then
+		local check = sellCheck
 		sellCheck = nil
+		-- Not sold: the item comes back, unless the list was asked again since (it is right then).
+		if check.index and check.name == current and bags == check.list then
+			table.insert(bags, math.min(check.index, #bags + 1), check.item)
+			if Render then Render() end
+		end
 		Print(T("NO_VENDOR"))
 	end
 end)
 
-local function AfterChange()
-	-- The bags changed: ask again once the server lets the same lines through.
+function AfterChange()
+	-- The bags changed: ask again once the server lets the same lines through, counted from the last listing
+	-- (Ask queues it otherwise); a short moment first, for the bot to act on the order.
 	local name = current
 	local again = CreateFrame("Frame")
 	local wait = 0
 	again:SetScript("OnUpdate", function(self, delta)
 		wait = wait + delta
-		if wait < REPEAT_DELAY then return end
+		if wait < 0.4 then return end
 		self:SetScript("OnUpdate", nil)
 		if current == name and sheet:IsShown() then
 			if tab == "bags" then Ask(bagMode, bagMode == "bank" and "bank" or "c")
@@ -514,6 +590,12 @@ local function SendableLink(item)
 	if link then return link end
 	local color, name = item.link:match("^|c(%x+)|H"), item.link:match("|h%[(.-)%]|h")
 	return "|c" .. (color or "ffffffff") .. "|Hitem:" .. item.id .. ":0:0:0:0:0:0:0:0|h[" .. (name or "?") .. "]|h|r"
+end
+
+-- From a menu or a click on the sheet no chat box is open, and ChatEdit_InsertLink drops the link: the chat opens with it.
+local function InsertLink(link)
+	if not link or link == "" then return end
+	if not ChatEdit_InsertLink(link) then ChatFrame_OpenChat(link) end
 end
 
 -- An item dropped on the bags goes to the bot by trade: the trade opens, then the item on the cursor is put
@@ -547,13 +629,35 @@ tradeWatch:SetScript("OnEvent", function()
 	end
 end)
 
+StaticPopupDialogs.SQUIDBOTSLITE_DESTROY = {
+	text = "%s", button1 = YES, button2 = NO, timeout = 0, whileDead = 1, hideOnEscape = 1,
+	OnAccept = function(self)
+		Whisper("destroy " .. self.data)
+		if self.item then TakeOut(bags, self.item) end
+		AfterChange()
+	end,
+}
+-- "autogear" makes new gear on the server: a click by mistake cannot be taken back, so it is asked first.
+StaticPopupDialogs.SQUIDBOTSLITE_AUTOGEAR = {
+	text = "%s", button1 = YES, button2 = NO, timeout = 0, whileDead = 1, hideOnEscape = 1,
+	OnAccept = function()
+		Whisper("autogear")
+		AfterChange()
+	end,
+}
+local function Destroy(item, link)
+	StaticPopupDialogs.SQUIDBOTSLITE_DESTROY.text = string.format(T("DESTROY_ASK"), current, item.link)
+	local dialog = StaticPopup_Show("SQUIDBOTSLITE_DESTROY")
+	if dialog then dialog.data, dialog.item = link, item end
+end
+
 local function ItemMenu(item)
 	local link = SendableLink(item)
 	if bagMode == "bank" then
 		EasyMenu({
 			{ text = item.link, isTitle = true, notCheckable = true },
-			{ text = T("WITHDRAW"), notCheckable = true, func = function() Whisper("bank -" .. link); AfterChange() end },
-			{ text = T("LINK"), notCheckable = true, func = function() ChatEdit_InsertLink(link) end },
+			{ text = T("WITHDRAW"), notCheckable = true, func = function() Whisper("bank -" .. link); TakeOut(bank, item); AfterChange() end },
+			{ text = T("LINK"), notCheckable = true, func = function() InsertLink(link) end },
 		}, menuFrame, "cursor", 0, 0, "MENU", MENU_HIDE_DELAY)
 	if SquidBotsLite_WatchMenu then SquidBotsLite_WatchMenu() end
 		return
@@ -564,9 +668,10 @@ local function ItemMenu(item)
 			or { text = T("GIVE"), notCheckable = true, func = function() Give(link); AfterChange() end },
 		{ text = T("EQUIP"), notCheckable = true, func = function() Whisper("e " .. link); AfterChange() end },
 		{ text = T("USE"), notCheckable = true, func = function() Whisper("u " .. link); AfterChange() end },
-		{ text = T("SELL"), notCheckable = true, func = function() Sell(link); AfterChange() end },
-		{ text = T("DEPOSIT"), notCheckable = true, func = function() Whisper("bank " .. link); AfterChange() end },
-		{ text = T("LINK"), notCheckable = true, func = function() ChatEdit_InsertLink(link) end },
+		{ text = T("SELL"), notCheckable = true, func = function() Sell(link, false, item) end },
+		{ text = T("DEPOSIT"), notCheckable = true, func = function() Whisper("bank " .. link); TakeOut(bags, item); AfterChange() end },
+		{ text = T("DESTROY"), notCheckable = true, func = function() Destroy(item, link) end },
+		{ text = T("LINK"), notCheckable = true, func = function() InsertLink(link) end },
 	}, menuFrame, "cursor", 0, 0, "MENU", MENU_HIDE_DELAY)
 	if SquidBotsLite_WatchMenu then SquidBotsLite_WatchMenu() end
 end
@@ -578,17 +683,27 @@ local function ItemButton(parent, size)
 	local b = CreateFrame("Button", nil, parent)
 	b:SetWidth(size)
 	b:SetHeight(size)
-	b:SetNormalTexture("Interface\\Buttons\\UI-Quickslot2")
-	b:GetNormalTexture():SetAllPoints()
+	-- One thin border, in the item's quality colour (the action bar's slot texture drew a frame in the frame).
+	b.edge = b:CreateTexture(nil, "BACKGROUND")
+	b.edge:SetTexture("Interface\\Buttons\\WHITE8X8")
+	b.edge:SetAllPoints()
+	b.edge:SetVertexColor(0, 0, 0, 0.9)
 	b.icon = b:CreateTexture(nil, "ARTWORK")
-	b.icon:SetPoint("TOPLEFT", 2, -2)
-	b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+	b.icon:SetPoint("TOPLEFT", 1, -1)
+	b.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+	b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	b.count = b:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
 	b.count:SetPoint("BOTTOMRIGHT", -2, 2)
 	b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
 	b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 	b:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	return b
+end
+
+-- Green and better get their colour on the border; white, grey and an empty slot stay black.
+local function SetQuality(b, quality)
+	local color = quality and quality >= 2 and ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+	if color then b.edge:SetVertexColor(color.r, color.g, color.b, 1) else b.edge:SetVertexColor(0, 0, 0, 0.9) end
 end
 
 local pages = {}
@@ -612,7 +727,7 @@ local function BuildGear(page)
 			local link = unit and GetInventoryItemLink(unit, self.slot)
 			if not link then return end
 			if IsShiftKeyDown() then
-				ChatEdit_InsertLink(link)
+				InsertLink(link)
 			elseif mouse == "RightButton" then
 				Whisper("ue " .. link)
 				AfterChange()
@@ -651,7 +766,17 @@ local function BuildGear(page)
 	page.best:SetWidth(140)
 	page.best:SetHeight(22)
 	page.best:SetPoint("TOP", 0, -296)
-	page.best:SetScript("OnClick", function() Whisper("autogear"); AfterChange() end)
+	page.best:SetScript("OnClick", function()
+		StaticPopupDialogs.SQUIDBOTSLITE_AUTOGEAR.text = string.format(T("BEST_GEAR_ASK"), current or "?")
+		StaticPopup_Show("SQUIDBOTSLITE_AUTOGEAR")
+	end)
+	page.best:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:SetText(T("BEST_GEAR"))
+		GameTooltip:AddLine(T("BEST_GEAR_TIP"), 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	page.best:SetScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
 local function BuildBags(page)
@@ -669,7 +794,7 @@ local function BuildBags(page)
 		b:SetScript("OnClick", function(self)
 			if CursorHasItem() then DropOnBags() return end
 			if not self.item then return end
-			if IsShiftKeyDown() then ChatEdit_InsertLink(SendableLink(self.item)) else ItemMenu(self.item) end
+			if IsShiftKeyDown() then InsertLink(SendableLink(self.item)) else ItemMenu(self.item) end
 		end)
 		b:SetScript("OnReceiveDrag", DropOnBags)
 		page.buttons[i] = b
@@ -692,7 +817,15 @@ local function BuildBags(page)
 	page.grey:SetWidth(130)
 	page.grey:SetHeight(22)
 	page.grey:SetPoint("LEFT", page.trade, "RIGHT", 8, 0)
-	page.grey:SetScript("OnClick", function() Sell("gray", true); AfterChange() end)
+	page.grey:SetScript("OnClick", function()
+		Sell("junk", true)
+		-- The grey items leave the list at once.
+		for i = #bags, 1, -1 do
+			if bags[i].link:find("^|cff9d9d9d") then table.remove(bags, i) end
+		end
+		if Render then Render() end
+		AfterChange()
+	end)
 	page.bank = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 	page.bank:SetWidth(110)
 	page.bank:SetHeight(22)
@@ -745,7 +878,7 @@ local function BuildQuests(page)
 		row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 		row:SetScript("OnClick", function(self, mouse)
 			if not (self.quest and self.quest.link) then return end
-			if IsShiftKeyDown() then ChatEdit_InsertLink(self.quest.text)
+			if IsShiftKeyDown() then InsertLink(self.quest.text)
 			elseif mouse == "RightButton" then
 				local title = self.quest.text:match("|h%[(.-)%]|h")
 				if title then
@@ -791,13 +924,25 @@ local function BuildInfo(page)
 end
 
 local STRAT_ROWS = 13
+local STRATEGY_ZH = {
+	["avoid aoe"] = "躲避范围伤害", behind = "绕到背后", threat = "控制仇恨", ["dps aoe"] = "范围输出",
+	focus = "集火", passive = "被动", aggressive = "主动进攻", ["wait for attack"] = "等待攻击",
+	["tank face"] = "调整坦克朝向", ["mark rti"] = "标记目标", ["pull back"] = "拉回再打",
+	potions = "使用药水", racials = "使用种族技能", flee = "逃跑", kite = "风筝", follow = "跟随", stay = "停留",
+	grind = "刷怪", loot = "拾取", gather = "采集", food = "进食", quest = "任务", ["accept all quests"] = "接取所有任务",
+	rpg = "与环境互动", travel = "旅行", mount = "骑乘", buff = "施加增益", maintenance = "维护",
+	["ready check"] = "就绪确认", emote = "表情", chat = "聊天", duel = "决斗", sit = "坐下",
+}
+local function StrategyLabel(name)
+	return (SquidBotsLiteDB.lang == "zh" and STRATEGY_ZH[name]) or name
+end
 
 local function StratMenu(kind)
 	local have, items = {}, { { text = T(kind == "co" and "COMBAT" or "NONCOMBAT"), isTitle = true, notCheckable = true } }
 	for _, name in ipairs(strats[kind]) do have[name] = true end
 	for _, name in ipairs(kind == "co" and COMBAT_STRATS or NONCOMBAT_STRATS) do
 		if not have[name] then
-			table.insert(items, { text = name, notCheckable = true, func = function() Whisper(kind .. " +" .. name); AfterChange() end })
+			table.insert(items, { text = StrategyLabel(name), notCheckable = true, func = function() Whisper(kind .. " +" .. name); AfterChange() end })
 		end
 	end
 	EasyMenu(items, menuFrame, "cursor", 0, 0, "MENU", MENU_HIDE_DELAY)
@@ -845,7 +990,7 @@ local function RenderStrats(page)
 		local list = strats[col.kind]
 		for i, row in ipairs(col.rows) do
 			row.strat = list[i]
-			row.text:SetText(list[i] and ("|cffff6060x|r  " .. list[i]) or "")
+			row.text:SetText(list[i] and ("|cffff6060x|r  " .. StrategyLabel(list[i])) or "")
 			if list[i] then row:Show() else row:Hide() end
 		end
 	end
@@ -1016,7 +1161,7 @@ local function TalentRow(page, i)
 	row:SetScript("OnLeave", function() GameTooltip:Hide() end)
 	row:SetScript("OnClick", function(self)
 		local id = self.talent and self.talent.id or self.option and self.option.id
-		if id and IsShiftKeyDown() then ChatEdit_InsertLink(GetSpellLink(id) or "") end
+		if id and IsShiftKeyDown() then InsertLink(GetSpellLink(id) or "") end
 	end)
 	row:EnableMouseWheel(true)
 	row:SetScript("OnMouseWheel", function(_, delta)
@@ -1157,13 +1302,36 @@ end
 
 local RenderMounts
 
+-- The mounts the search box keeps: a part of the name, any case. Empty box: all of them.
+local function ShownMounts(page)
+	local search = page.search and strlower(strtrim(page.search:GetText() or "")) or ""
+	if search == "" then return mounts, search end
+	local list = {}
+	for _, m in ipairs(mounts) do
+		if strlower(m.name or ""):find(search, 1, true) then table.insert(list, m) end
+	end
+	return list, search
+end
+
 local function BuildMounts(page)
+	page.search = CreateFrame("EditBox", "SquidBotsLiteMountSearch", page, "InputBoxTemplate")
+	page.search:SetWidth(220)
+	page.search:SetHeight(20)
+	page.search:SetPoint("TOPLEFT", 18, -2)
+	page.search:SetAutoFocus(false)
+	page.search:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus() end)
+	page.search:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+	page.search:SetScript("OnTextChanged", function() mountOffset = 0; RenderMounts(page) end)
+	page.search:SetScript("OnEditFocusGained", function() page.typing = true; RenderMounts(page) end)
+	page.search:SetScript("OnEditFocusLost", function() page.typing = nil; RenderMounts(page) end)
+	page.searchHint = page.search:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	page.searchHint:SetPoint("LEFT", 4, 0)
 	page.rows = {}
 	for i = 1, MOUNT_ROWS do
 		local row = CreateFrame("Button", nil, page)
 		row:SetWidth(370)
 		row:SetHeight(22)
-		row:SetPoint("TOPLEFT", 10, -(i - 1) * 24)
+		row:SetPoint("TOPLEFT", 10, -26 - (i - 1) * 24)
 		row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
 		row.icon = row:CreateTexture(nil, "ARTWORK")
 		row.icon:SetWidth(20)
@@ -1193,24 +1361,24 @@ local function BuildMounts(page)
 		end)
 		row:EnableMouseWheel(true)
 		row:SetScript("OnMouseWheel", function(_, delta)
-			mountOffset = math.max(0, math.min(math.max(0, #mounts - MOUNT_ROWS), mountOffset - delta * 3))
+			mountOffset = math.max(0, math.min(math.max(0, (page.count or 0) - MOUNT_ROWS), mountOffset - delta * 3))
 			RenderMounts(page)
 		end)
 		page.rows[i] = row
 	end
 	page.up = CreateFrame("Button", nil, page, "UIPanelScrollUpButtonTemplate")
-	page.up:SetPoint("TOPRIGHT", -6, 0)
+	page.up:SetPoint("TOPRIGHT", -6, -26)
 	page.up:SetScript("OnClick", function() mountOffset = math.max(0, mountOffset - MOUNT_ROWS); RenderMounts(page) end)
 	page.down = CreateFrame("Button", nil, page, "UIPanelScrollDownButtonTemplate")
-	page.down:SetPoint("TOPRIGHT", -6, -(MOUNT_ROWS * 24) + 16)
+	page.down:SetPoint("TOPRIGHT", -6, -26 - (MOUNT_ROWS * 24) + 16)
 	page.down:SetScript("OnClick", function()
-		if mountOffset + MOUNT_ROWS < #mounts then mountOffset = mountOffset + MOUNT_ROWS end
+		if mountOffset + MOUNT_ROWS < (page.count or 0) then mountOffset = mountOffset + MOUNT_ROWS end
 		RenderMounts(page)
 	end)
 	page.auto = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 	page.auto:SetWidth(150)
 	page.auto:SetHeight(22)
-	page.auto:SetPoint("TOPLEFT", 10, -(MOUNT_ROWS * 24) - 6)
+	page.auto:SetPoint("TOPLEFT", 10, -26 - (MOUNT_ROWS * 24) - 6)
 	page.auto:SetScript("OnClick", function() Whisper("mount clear"); AfterChange() end)
 	page.hint = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
 	page.hint:SetPoint("TOPLEFT", page.auto, "TOPRIGHT", 8, 2)
@@ -1222,7 +1390,15 @@ local function BuildMounts(page)
 end
 
 RenderMounts = function(page)
-	page.note:SetText(#mounts == 0 and capture == nil and sheet.status:GetText() == "" and T("NO_MOUNTS") or "")
+	local shown, search = ShownMounts(page)
+	page.count = #shown
+	mountOffset = math.max(0, math.min(mountOffset, #shown - MOUNT_ROWS))
+	page.searchHint:SetText(search == "" and not page.typing and T("MOUNT_SEARCH") or "")
+	if #mounts == 0 then
+		page.note:SetText(capture == nil and sheet.status:GetText() == "" and T("NO_MOUNTS") or "")
+	else
+		page.note:SetText(#shown == 0 and string.format(T("MOUNT_NONE"), page.search:GetText()) or "")
+	end
 	page.auto:SetText(T("AUTO_MOUNT"))
 	page.hint:SetText(T("MOUNT_HINT"))
 	local kinds = { ground = T("GROUND"), flying = T("FLYING"), both = T("BOTH") }
@@ -1241,7 +1417,7 @@ RenderMounts = function(page)
 		return T("PREFERRED")
 	end
 	for i, row in ipairs(page.rows) do
-		local m = mounts[mountOffset + i]
+		local m = shown[mountOffset + i]
 		row.mount = m
 		if m then
 			row.icon:SetTexture(select(3, GetSpellInfo(m.id)) or "Interface\\Icons\\INV_Misc_QuestionMark")
@@ -1253,11 +1429,15 @@ RenderMounts = function(page)
 			row:Hide()
 		end
 	end
-	if #mounts > MOUNT_ROWS then page.up:Show(); page.down:Show() else page.up:Hide(); page.down:Hide() end
+	if #shown > MOUNT_ROWS then page.up:Show(); page.down:Show() else page.up:Hide(); page.down:Hide() end
 end
 
-local TABS = { { "gear", "GEAR", BuildGear }, { "bags", "BAGS", BuildBags }, { "quests", "QUESTS", BuildQuests },
-	{ "talents", "TALENTS", BuildTalents }, { "mounts", "MOUNTS", BuildMounts }, { "info", "INFO", BuildInfo } }
+local TABS = { { "gear", "GEAR", BuildGear, "Interface\\Icons\\INV_Chest_Chain_05" },
+	{ "bags", "BAGS", BuildBags, "Interface\\Icons\\INV_Misc_Bag_08" },
+	{ "quests", "QUESTS", BuildQuests, "Interface\\GossipFrame\\AvailableQuestIcon" },
+	{ "talents", "TALENTS", BuildTalents, "Interface\\Icons\\INV_Misc_Book_11" },
+	{ "mounts", "MOUNTS", BuildMounts, "Interface\\Icons\\Ability_Mount_RidingHorse" },
+	{ "info", "INFO", BuildInfo, "Interface\\Icons\\INV_Misc_Note_01" } }
 -- The Strategies tab (BuildStrats) is kept out for now: too easy to break a bot with it (decision 12/10).
 -- Put { "strats", "STRATS", BuildStrats } back in TABS to show it.
 
@@ -1284,6 +1464,7 @@ local function RenderGear(page)
 		local texture = unit and GetInventoryItemTexture(unit, slot)
 		b.icon:SetTexture(texture)
 		if texture then b.icon:Show() else b.icon:Hide() end
+		SetQuality(b, texture and GetInventoryItemQuality(unit, slot))
 	end
 	-- The model is set once per bot (setting it again would turn it back to the front).
 	if unit and UnitIsVisible(unit) then
@@ -1317,6 +1498,7 @@ local function RenderBags(page)
 		if item then
 			b.icon:SetTexture((GetItemIcon and GetItemIcon(item.id)) or select(10, GetItemInfo(item.id)) or "Interface\\Icons\\INV_Misc_QuestionMark")
 			b.icon:Show()
+			SetQuality(b, select(3, GetItemInfo(item.id)))
 			b.count:SetText(item.count > 1 and item.count or "")
 			b:Show()
 		else
@@ -1351,7 +1533,7 @@ Render = function()
 	sheet.goldText:SetText(gold and ("|cffffd100" .. T("GOLD") .. "|r " .. gold) or "")
 	local line = ""
 	if info.level then
-		local class = info.class or ""
+		local class = SquidBotsLite_ClassDisplayName(info.class) or ""
 		local color = info.token and RAID_CLASS_COLORS and RAID_CLASS_COLORS[info.token]
 		if color then class = string.format("|cff%02x%02x%02x%s|r", color.r * 255, color.g * 255, color.b * 255, class) end
 		line = string.format(T("LEVEL"), info.level, class)
@@ -1369,6 +1551,11 @@ Render = function()
 	for _, def in ipairs(TABS) do
 		local key = def[1]
 		sheet.tabs[key]:SetText(T(def[2]))
+		local text = sheet.tabs[key]:GetFontString()
+		if text then
+			text:ClearAllPoints()
+			text:SetPoint("LEFT", sheet.tabs[key].tabIcon, "RIGHT", 4, 0)
+		end
 		if key == tab then sheet.tabs[key]:LockHighlight() else sheet.tabs[key]:UnlockHighlight() end
 		if key == tab then pages[key]:Show() else pages[key]:Hide() end
 	end
@@ -1436,6 +1623,16 @@ local function Build()
 		b:SetHeight(22)
 		b:SetPoint("TOPLEFT", 16 + (i - 1) * 73, -36)
 		b:SetScript("OnClick", function() tab = def[1]; Load() end)
+		-- A small icon before the name, the name a size smaller to make room.
+		b:SetNormalFontObject(GameFontNormalSmall)
+		b:SetHighlightFontObject(GameFontHighlightSmall)
+		b:SetPushedTextOffset(0, 0)
+		b.tabIcon = b:CreateTexture(nil, "OVERLAY")
+		b.tabIcon:SetWidth(14)
+		b.tabIcon:SetHeight(14)
+		b.tabIcon:SetPoint("LEFT", 6, 0)
+		b.tabIcon:SetTexture(def[4])
+		if def[4]:find("Icons") then b.tabIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
 		sheet.tabs[def[1]] = b
 		local page = CreateFrame("Frame", nil, sheet)
 		page:SetPoint("TOPLEFT", 8, -86)
@@ -1453,7 +1650,7 @@ local function Build()
 	sheet.specText = sheet:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	sheet.specText:SetPoint("TOPLEFT", 20, -64)
 	sheet.xp = CreateFrame("StatusBar", nil, sheet)
-	sheet.xp:SetHeight(12)
+	sheet.xp:SetHeight(10)
 	sheet.xp:SetPoint("BOTTOMLEFT", 20, 44)
 	sheet.xp:SetPoint("BOTTOMRIGHT", -20, 44)
 	sheet.xp:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
@@ -1466,6 +1663,8 @@ local function Build()
 	sheet.xp.text:SetPoint("CENTER")
 	sheet.status = sheet:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 	sheet.status:SetPoint("BOTTOMLEFT", 18, 20)
+	-- The flat buttons of the other panels (SquidBotsLite.lua).
+	if SquidBotsLite_UI then SquidBotsLite_UI.FlattenAll(sheet) end
 	sheet:Hide()
 end
 
@@ -1478,6 +1677,7 @@ function SquidBotsLite_OpenSheet(name)
 	if not sheet then Build() end
 	if current ~= name then
 		bags, quests, stats, mounts, bank, strats, queue = {}, {}, {}, {}, {}, { co = {}, nc = {} }, {}
+		if pages.mounts and pages.mounts.search then pages.mounts.search:SetText(""); pages.mounts.search:ClearFocus() end
 		talents, talentSpent, talentOffset = {}, nil, 0
 		options, pending, points, choosing, saveQueue = {}, {}, nil, false, {}
 		bagMode = "bags"

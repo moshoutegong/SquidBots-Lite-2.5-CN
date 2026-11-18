@@ -1,52 +1,41 @@
-# SquidBots Lite 2.5 中文汉化版
+# SquidBots Lite 2.9.4 中文汉化版
 
 > [!NOTE]
-> 本汉化版基于 Arden 启动器提供的最新版 SquidBots Lite（2.5），并针对飞升 Arden 客户端进行了中文本地化和问题修复。部分功能依赖服务端支持，能否使用以 Arden 服务端实际提供的功能为准。
->
-> 较新版本的 SquidBots Lite 也可以在 Arden 客户端加载，但部分功能可能因服务端兼容性而无法使用。**如果你玩的是 Arden，建议下载本仓库提供的版本。**
+> 本版以 SquidBots Lite 2.9.4 为基础，在飞升 FSHD 客户端上进行汉化整合。采集派遣、副本清理和主坦克等功能需要相应的服务端支持。Arden 玩家可下载此前的 [2.5 中文适配版](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.5.0)。
 
-## 🧭 新功能 · 小地图图标
+**汉化整合：B站魔兽特工**
 
-用小地图上的 **SquidBots Lite** 图标随时展开或收起机器人界面。更新插件后，可在游戏中输入 `/reload`，然后在小地图边缘找到图标。
+## 🧭 小地图开关
 
-- **左键点击**打开机器人指令栏，可使用跟随、停留、攻击目标、自动开怪、小号管理和招募等功能。
-- **再次左键点击**收起指令栏和已打开的小号、专精及机器人管理窗口。收到招募回复时，隐藏的指令栏会保持收起。
-- **按住左键拖动**可沿小地图边缘移动图标。图标位置和指令栏的显示状态会按角色保存。
+左键点击小地图上的 SquidBots Lite 图标，可展开或收起机器人指令栏及已打开的管理窗口。按住左键拖动可移动图标。图标位置和指令栏的显示状态按角色保存。
 
-![小地图上的 SquidBots Lite 图标及鼠标悬停提示](docs/images/squidbots-minimap.png)
+## 📝 2.9.4 更新说明
 
-## 🎮 插件功能
-
-本版保留机器人管理面板和按角色独立保存设置的功能。主界面及机器人管理面板均已汉化，可用 `/sbl lang zh` 切换为中文。攻击目标按钮采用两行显示，并修复了缺少职责数据时出现问号的问题。
-
-新功能入口：/sbl bot、/sbl spec、/sbl alts；机器人图标菜单也保留官方功能。部分银行、坐骑、天赋和账号功能需要对应服务端支持。
+- 保留旧版中文译文和小地图开关，补译新版的「我的小号」、小号总览、采集派遣、队伍任务、训练师、副本清理和主坦克等界面。
+- 恢复旧版指令栏字号和描边，拉开按钮间距，「攻击目标」和「自动开怪」均为单行显示。
+- 恢复 Bots 招募频道。插件会尝试自动加入 **Bots**，未加入时会提示稍后重试，避免把招募发到 NewcomersCN。使用 `/sbl channel` 可恢复默认频道。
+- 在插件列表中显示 **SquidBots Lite(机器人管理)**，并在「关于」末尾加入汉化署名。
 
 ## 📦 安装
 
-先备份游戏目录中的 `SquidBotsLite` 和 `WTF` 中的同名存档。将插件放入 `Interface/AddOns`，确认插件目录名为 `SquidBotsLite`。避免同时启用两版。
+1. 从 [2.9.4 发布页](https://github.com/moshoutegong/SquidBots-Lite-2.5-CN/releases/tag/v2.9.4) 下载 `SquidBotsLite-v2.9.4-FSHD-CN.zip`。
+2. 备份原插件和 `WTF` 中的同名存档，将 ZIP 内的 `SquidBotsLite` 文件夹放进客户端的 `Interface/AddOns`。
+3. 完整重启客户端。需要切换为简体中文时，输入 `/sbl lang zh`。
 
 ## 📸 游戏内实机截图
 
 ### 机器人指令栏
 
-![展开后的 SquidBots Lite 机器人指令栏](docs/images/squidbots-toolbar.png)
+![2.9.4 中文指令栏，攻击目标和自动开怪单行显示](docs/images/v2.9.4/toolbar.png)
 
-### 招募菜单
+### 我的小号
 
-点击指令栏的「招募」，可按坦克、治疗或输出招募，也可进入小号和专精管理。
+![我的小号面板，含总览、派遣、保存的队伍和关联账号](docs/images/v2.9.4/alts.png)
 
-![机器人指令栏展开的招募菜单](docs/images/squidbots-recruit-menu.png)
+### 机器人管理
 
-### 主动模式提示
+![机器人管理面板，含装备、背包、任务、天赋、坐骑和信息](docs/images/v2.9.4/manager.png)
 
-鼠标悬停在「主动」按钮上，可查看主动和被动模式的区别，以及切换预设、拖动和缩放的操作提示。
+### 小号队伍栏
 
-![主动模式按钮的悬停提示](docs/images/squidbots-active-tooltip.png)
-
-### 招募回复与邀请
-
-机器人回复招募后，指令栏上方会显示邀请提示，点击「邀请」即可发出组队邀请。招募频道和机器人的私聊回复也可在聊天窗口查看。
-
-![指令栏上方的机器人招募回复和邀请按钮](docs/images/squidbots-recruit-offers.png)
-
-![聊天窗口中的招募消息和机器人私聊回复](docs/images/squidbots-recruit-chat.png)
+![小号队伍栏中的角色头像和快捷操作图标](docs/images/v2.9.4/team-bar.png)
