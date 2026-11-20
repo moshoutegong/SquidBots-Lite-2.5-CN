@@ -868,12 +868,8 @@ end
 
 local ShowAlts, ShowSpecs
 -- Dungeon clear (mod-dungeon-clear on the server): the player's own ".dc" commands, sent in /say like ".playerbots".
--- Whether the realm has the module is asked once a session: ".dc status" whispered to oneself, so that without
--- the module the line never shows in /say (the server pretends a command it lacks does not exist, and the
--- whisper comes back). The answer is kept out of the chat. dc.module: nil (not known yet), "on", "off" (installed,
--- DungeonClear.Enable = 0), "absent".
--- One table for all of it: the client allows 200 locals in a file's main chunk.
-local dc = { module = nil, probeAt = nil, waitUntil = nil, pull = nil, PROBE_DELAY = 8, PROBE_WAIT = 5, LINE_KEEP = 6 }
+-- Automatic .dc status probes are disabled. Server addon replies can still identify the module.
+local dc = { module = "absent", waitUntil = nil, pull = nil, LINE_KEEP = 6 }
 
 function dc.Send(args)
 	SendChatMessage(".dc " .. args, "SAY")
@@ -894,15 +890,6 @@ end
 function dc.Tick()
 	if buttons.dungeon then
 		buttons.dungeon.tip = (dc.module == "on" or dc.module == "off") and "TIP_DUNGEON_DC" or "TIP_DUNGEON"
-	end
-	if dc.module or not dc.probeAt then return end
-	local now = GetTime()
-	if not dc.waitUntil then
-		if now < dc.probeAt then return end
-		dc.waitUntil = now + dc.PROBE_WAIT
-		SendChatMessage(".dc status", "WHISPER", nil, UnitName("player"))
-	elseif now > dc.waitUntil then
-		dc.module, dc.waitUntil = "absent", nil
 	end
 end
 
@@ -3774,7 +3761,6 @@ events:SetScript("OnEvent", function(self, event, arg1, arg2)
 			"CHAT_MSG_RAID_LEADER", "CHAT_MSG_SYSTEM", "CHAT_MSG_ADDON", "PARTY_MEMBERS_CHANGED", "RAID_ROSTER_UPDATE" }) do
 			self:RegisterEvent(e)
 		end
-		dc.probeAt = GetTime() + dc.PROBE_DELAY
 		local elapsed = 0
 		self:SetScript("OnUpdate", function(_, delta)
 			elapsed = elapsed + delta
